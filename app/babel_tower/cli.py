@@ -34,5 +34,30 @@ def process(
     typer.echo(result)
 
 
+@app.command()
+def daemon(
+    mode: str | None = typer.Option(
+        None, help="Default processing mode for this session"
+    ),
+) -> None:
+    """Start continuous voice listening daemon."""
+    from babel_tower.config import Settings
+    from babel_tower.daemon import VoiceDaemon
+
+    settings = Settings()
+    if mode:
+        settings.default_mode = mode
+    d = VoiceDaemon(settings=settings)
+    asyncio.run(d.run())
+
+
+@app.command()
+def mcp() -> None:
+    """Start MCP server (STDIO transport for Claude Code)."""
+    from babel_tower.mcp_server import mcp as mcp_server
+
+    mcp_server.run()
+
+
 if __name__ == "__main__":
     app()
