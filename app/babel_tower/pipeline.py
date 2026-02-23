@@ -1,8 +1,8 @@
 from babel_tower.audio import record_speech
 from babel_tower.config import Settings
 from babel_tower.output import copy_to_clipboard, notify
-from babel_tower.processing import process_transcript
-from babel_tower.stt import transcribe
+from babel_tower.processing import ProcessingError, process_transcript
+from babel_tower.stt import STTError, transcribe
 
 
 async def run_pipeline(
@@ -16,10 +16,22 @@ async def run_pipeline(
     audio = await record_speech(settings)
 
     notify("Babel Tower", "Transkribiere...")
-    transcript = await transcribe(audio, settings)
+    try:
+        transcript = await transcribe(audio, settings)
+    except STTError as e:
+        notify("Babel Tower", f"STT-Fehler: {e}", "critical")
+        return f"[STT-Fehler: {e}]"
+
+    if not transcript:
+        notify("Babel Tower", "Keine Sprache erkannt", "low")
+        return ""
 
     notify("Babel Tower", "Verarbeite...")
-    result = await process_transcript(transcript, mode, settings)
+    try:
+        result = await process_transcript(transcript, mode, settings)
+    except ProcessingError:
+        notify("Babel Tower", "M5 offline — Roh-Transkript verwendet", "normal")
+        result = transcript
 
     copy_to_clipboard(result)
     notify("Babel Tower", result[:100])
@@ -38,8 +50,21 @@ async def process_file(
     with open(audio_path, "rb") as f:
         audio_bytes = f.read()
 
-    transcript = await transcribe(audio_bytes, settings)
-    result = await process_transcript(transcript, mode, settings)
+    try:
+        transcript = await transcribe(audio_bytes, settings)
+    except STTError as e:
+        notify("Babel Tower", f"STT-Fehler: {e}", "critical")
+        return f"[STT-Fehler: {e}]"
+
+    if not transcript:
+        notify("Babel Tower", "Keine Sprache erkannt", "low")
+        return ""
+
+    try:
+        result = await process_transcript(transcript, mode, settings)
+    except ProcessingError:
+        notify("Babel Tower", "M5 offline — Roh-Transkript verwendet", "normal")
+        result = transcript
 
     copy_to_clipboard(result)
     notify("Babel Tower", result[:100])
