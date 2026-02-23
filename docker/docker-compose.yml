@@ -1,0 +1,28 @@
+services:
+  stt:
+    image: ghcr.io/speaches-ai/speaches:latest-cuda
+    container_name: babel-tower-stt
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    ports:
+      - "9000:8000"
+    volumes:
+      - stt-models:/home/ubuntu/.cache/huggingface/hub
+    environment:
+      - WHISPER__MODEL=Systran/faster-whisper-large-v3
+      - WHISPER__COMPUTE_TYPE=int8
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  stt-models:
