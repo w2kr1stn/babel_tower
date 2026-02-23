@@ -24,5 +24,26 @@ services:
       retries: 3
       start_period: 60s
 
+  daemon:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.app
+    container_name: babel-tower-daemon
+    command: ["python", "-m", "babel_tower.cli", "daemon"]
+    environment:
+      - PULSE_SERVER=unix:/tmp/pulse.socket
+      - BABEL_STT_URL=http://stt:9000
+      - BABEL_LLM_URL=http://m5:4000
+      - BABEL_DEFAULT_MODE=strukturieren
+      - WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-wayland-0}
+    volumes:
+      - ${XDG_RUNTIME_DIR:-/run/user/1000}/pulse/native:/tmp/pulse.socket
+      - ${XDG_RUNTIME_DIR:-/run/user/1000}/${WAYLAND_DISPLAY:-wayland-0}:/tmp/${WAYLAND_DISPLAY:-wayland-0}
+    user: "${UID:-1000}:${GID:-1000}"
+    depends_on:
+      stt:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   stt-models:
