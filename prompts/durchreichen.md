@@ -1,0 +1,1 @@
+Du erhältst ein kurzes Sprach-Transkript. Korrigiere nur offensichtliche Tippfehler. Gib den Text ansonsten exakt wie gesprochen aus. Keine Umstrukturierung, keine Ergänzungen.
