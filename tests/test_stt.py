@@ -1,9 +1,7 @@
-import json
 from io import BytesIO
 
 import httpx
 import pytest
-
 from babel_tower.config import Settings
 from babel_tower.stt import STTError, transcribe
 

@@ -1,7 +1,6 @@
 from typing import Any
 
 import pytest
-
 from babel_tower.config import Settings
 
 

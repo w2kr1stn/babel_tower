@@ -2,7 +2,6 @@ from pathlib import Path
 
 import httpx
 import pytest
-
 from babel_tower.config import Settings
 from babel_tower.processing import ProcessingError, get_available_modes, process_transcript
 
@@ -132,7 +131,9 @@ class TestErrorHandling:
 
         monkeypatch.setattr(httpx.AsyncClient, "post", mock_post)
         with pytest.raises(ProcessingError, match="unreachable"):
-            await process_transcript("Test text here", mode="bereinigen", settings=processing_settings)
+            await process_transcript(
+                "Test text here", mode="bereinigen", settings=processing_settings
+            )
 
     @pytest.mark.anyio
     async def test_raises_on_llm_timeout(
@@ -145,7 +146,9 @@ class TestErrorHandling:
 
         monkeypatch.setattr(httpx.AsyncClient, "post", mock_post)
         with pytest.raises(ProcessingError, match="timed out"):
-            await process_transcript("Test text here", mode="bereinigen", settings=processing_settings)
+            await process_transcript(
+                "Test text here", mode="bereinigen", settings=processing_settings
+            )
 
     @pytest.mark.anyio
     async def test_raises_on_non_200(
@@ -158,7 +161,9 @@ class TestErrorHandling:
 
         monkeypatch.setattr(httpx.AsyncClient, "post", mock_post)
         with pytest.raises(ProcessingError, match="500"):
-            await process_transcript("Test text here", mode="bereinigen", settings=processing_settings)
+            await process_transcript(
+                "Test text here", mode="bereinigen", settings=processing_settings
+            )
 
 
 class TestLLMResponseParsing:

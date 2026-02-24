@@ -71,9 +71,9 @@ async def _call_llm(transcript: str, system_prompt: str, settings: Settings) -> 
     result: dict[str, object] = response.json()
     choices = result["choices"]
     assert isinstance(choices, list)
-    first_choice: dict[str, object] = choices[0]
-    message = first_choice["message"]
+    first_choice: dict[str, object] = choices[0]  # pyright: ignore[reportUnknownVariableType]
+    message = first_choice["message"]  # pyright: ignore[reportUnknownVariableType]
     assert isinstance(message, dict)
-    content = message["content"]
+    content = message["content"]  # pyright: ignore[reportUnknownVariableType]
     assert isinstance(content, str)
     return content.strip()

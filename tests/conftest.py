@@ -5,7 +5,7 @@ import pytest
 
 
 @pytest.fixture
-def clean_env(monkeypatch: pytest.MonkeyPatch) -> Generator[pytest.MonkeyPatch, None, None]:
+def clean_env(monkeypatch: pytest.MonkeyPatch) -> Generator[pytest.MonkeyPatch]:
     """Remove all BABEL_ env vars so tests start from a clean state."""
     babel_vars = [
         "BABEL_STT_URL",
