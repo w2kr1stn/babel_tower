@@ -1,4 +1,4 @@
-from babel_tower.audio import record_speech
+from babel_tower.audio import NoSpeechError, record_speech
 from babel_tower.config import Settings
 from babel_tower.output import copy_to_clipboard, notify
 from babel_tower.processing import ProcessingError, process_transcript
@@ -13,7 +13,11 @@ async def run_pipeline(
     settings = settings or Settings()
 
     notify("Babel Tower", "Aufnahme gestartet...")
-    audio = await record_speech(settings)
+    try:
+        audio = await record_speech(settings)
+    except NoSpeechError:
+        notify("Babel Tower", "Keine Sprache erkannt", "low")
+        return ""
 
     notify("Babel Tower", "Transkribiere...")
     try:

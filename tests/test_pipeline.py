@@ -10,6 +10,7 @@ import pytest
 if "sounddevice" not in sys.modules:
     sys.modules["sounddevice"] = MagicMock()
 
+from babel_tower.audio import NoSpeechError  # noqa: E402
 from babel_tower.config import Settings  # noqa: E402
 from babel_tower.pipeline import process_file, run_pipeline  # noqa: E402
 from babel_tower.processing import ProcessingError  # noqa: E402
@@ -156,6 +157,21 @@ class TestProcessFile:
 
 
 class TestGracefulDegradation:
+    @pytest.mark.anyio
+    async def test_no_speech_returns_empty(self, mock_settings: Settings) -> None:
+        with (
+            patch(
+                "babel_tower.pipeline.record_speech",
+                new_callable=AsyncMock,
+                side_effect=NoSpeechError("No speech detected"),
+            ),
+            patch("babel_tower.pipeline.copy_to_clipboard", return_value=True),
+            patch("babel_tower.pipeline.notify", return_value=True) as mock_notify,
+        ):
+            result = await run_pipeline(settings=mock_settings)
+            assert result == ""
+            mock_notify.assert_any_call("Babel Tower", "Keine Sprache erkannt", "low")
+
     @pytest.mark.anyio
     async def test_stt_error_returns_error_message(self, mock_settings: Settings) -> None:
         with (
