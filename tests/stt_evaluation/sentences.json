@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "expected": "Wir brauchen einen neuen REST API Endpoint für die User Authentication",
+    "description": "API endpoint with authentication terms"
+  },
+  {
+    "id": 2,
+    "expected": "Der Docker Container braucht ein Volume Mount für die PostgreSQL Datenbank",
+    "description": "Docker and database terminology"
+  },
+  {
+    "id": 3,
+    "expected": "Bitte die CI CD Pipeline so konfigurieren dass die Tests vor dem Deployment laufen",
+    "description": "CI/CD pipeline and deployment"
+  },
+  {
+    "id": 4,
+    "expected": "Das Frontend verwendet React mit TypeScript und TailwindCSS für das Styling",
+    "description": "Frontend framework stack"
+  },
+  {
+    "id": 5,
+    "expected": "Ich habe den Pull Request reviewed und zwei Comments zum Error Handling hinterlassen",
+    "description": "Code review workflow"
+  },
+  {
+    "id": 6,
+    "expected": "Sieht gut aus Ship it",
+    "description": "Short approval confirmation"
+  },
+  {
+    "id": 7,
+    "expected": "Wir sollten das Singleton Pattern durch Dependency Injection ersetzen damit die Unit Tests einfacher werden",
+    "description": "Architecture patterns and testing"
+  },
+  {
+    "id": 8,
+    "expected": "Der Load Balancer verteilt die Requests auf drei Kubernetes Pods im Staging Cluster",
+    "description": "Infrastructure and deployment"
+  },
+  {
+    "id": 9,
+    "expected": "Kannst du den Feature Branch rebased auf Main und dann die Merge Conflicts fixen",
+    "description": "Git workflow operations"
+  },
+  {
+    "id": 10,
+    "expected": "Die GraphQL Query braucht ein neues Resolver Feld für die Pagination der Search Results",
+    "description": "GraphQL API with pagination"
+  }
+]
