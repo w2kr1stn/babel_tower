@@ -85,7 +85,7 @@ def _make_settings() -> Settings:
         audio_sample_rate=16000,
         audio_channels=1,
         vad_threshold=0.5,
-        silence_duration=1.5,
+        silence_duration=10.0,
     )
 
 

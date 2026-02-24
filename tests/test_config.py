@@ -8,7 +8,7 @@ class TestSettingsDefaults:
     def test_stt_defaults(self, clean_env: pytest.MonkeyPatch) -> None:
         settings = Settings()
         assert settings.stt_url == "http://localhost:9000"
-        assert settings.stt_model == "large-v3"
+        assert settings.stt_model == "Systran/faster-whisper-large-v3"
         assert settings.stt_language == "de"
         assert settings.stt_timeout == 30.0
 
@@ -23,7 +23,7 @@ class TestSettingsDefaults:
         assert settings.audio_sample_rate == 16000
         assert settings.audio_channels == 1
         assert settings.vad_threshold == 0.5
-        assert settings.silence_duration == 1.5
+        assert settings.silence_duration == 10.0
 
     def test_processing_defaults(self, clean_env: pytest.MonkeyPatch) -> None:
         settings = Settings()

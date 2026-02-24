@@ -14,7 +14,7 @@ services:
     volumes:
       - stt-models:/home/ubuntu/.cache/huggingface/hub
     environment:
-      - WHISPER__MODEL=Systran/faster-whisper-large-v3
+      - WHISPER__MODEL=${BABEL_STT_MODEL:-Systran/faster-whisper-large-v3}
       - WHISPER__COMPUTE_TYPE=int8
     restart: unless-stopped
     healthcheck:

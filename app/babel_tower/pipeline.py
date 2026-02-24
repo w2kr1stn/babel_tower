@@ -8,6 +8,7 @@ from babel_tower.stt import STTError, transcribe
 async def run_pipeline(
     mode: str | None = None,
     settings: Settings | None = None,
+    clipboard: bool = True,
 ) -> str:
     """Record speech, transcribe, process, and output. Returns processed text."""
     settings = settings or Settings()
@@ -46,8 +47,9 @@ async def run_pipeline(
             return ""
         result = reviewed
 
-    copy_to_clipboard(result)
-    notify("Babel Tower", result[:100])
+    if clipboard:
+        copy_to_clipboard(result)
+        notify("Babel Tower", result[:100])
 
     return result
 
@@ -56,6 +58,7 @@ async def process_file(
     audio_path: str,
     mode: str | None = None,
     settings: Settings | None = None,
+    clipboard: bool = True,
 ) -> str:
     """Process an existing audio file through the pipeline."""
     settings = settings or Settings()
@@ -88,7 +91,8 @@ async def process_file(
             return ""
         result = reviewed
 
-    copy_to_clipboard(result)
-    notify("Babel Tower", result[:100])
+    if clipboard:
+        copy_to_clipboard(result)
+        notify("Babel Tower", result[:100])
 
     return result

@@ -6,7 +6,7 @@ class Settings(BaseSettings):
 
     # STT
     stt_url: str = "http://localhost:9000"
-    stt_model: str = "large-v3"
+    stt_model: str = "Systran/faster-whisper-large-v3"
     stt_language: str = "de"
     stt_timeout: float = 30.0
 
@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     audio_sample_rate: int = 16000
     audio_channels: int = 1
     vad_threshold: float = 0.5
-    silence_duration: float = 1.5
+    silence_duration: float = 10.0
 
     # Processing
     default_mode: str = "bereinigen"

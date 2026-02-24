@@ -9,7 +9,7 @@ import pytest
 if "sounddevice" not in sys.modules:
     sys.modules["sounddevice"] = MagicMock()
 
-from babel_tower.mcp_server import _settings, listen, mcp, set_mode  # noqa: E402
+from babel_tower.mcp_server import _settings, converse, mcp, set_mode  # noqa: E402
 
 
 class TestMcpServerSetup:
@@ -21,7 +21,7 @@ class TestMcpServerSetup:
         assert isinstance(_settings.default_mode, str)
 
 
-class TestListenTool:
+class TestConverseTool:
     @pytest.mark.anyio
     async def test_calls_pipeline_with_default_mode(self) -> None:
         with patch(
@@ -29,9 +29,11 @@ class TestListenTool:
             new_callable=AsyncMock,
             return_value="processed text",
         ) as mock_pipeline:
-            result = await listen()
+            result = await converse()
             assert result == "processed text"
-            mock_pipeline.assert_called_once_with(mode=None, settings=_settings)
+            mock_pipeline.assert_called_once_with(
+                mode=None, settings=_settings, clipboard=False
+            )
 
     @pytest.mark.anyio
     async def test_calls_pipeline_with_explicit_mode(self) -> None:
@@ -40,20 +42,61 @@ class TestListenTool:
             new_callable=AsyncMock,
             return_value="structured text",
         ) as mock_pipeline:
-            result = await listen(mode="strukturieren")
+            result = await converse(mode="strukturieren")
             assert result == "structured text"
-            mock_pipeline.assert_called_once_with(mode="strukturieren", settings=_settings)
+            mock_pipeline.assert_called_once_with(
+                mode="strukturieren", settings=_settings, clipboard=False
+            )
 
     @pytest.mark.anyio
-    async def test_calls_pipeline_with_none_mode(self) -> None:
+    async def test_message_shows_notification(self) -> None:
+        with (
+            patch(
+                "babel_tower.mcp_server.run_pipeline",
+                new_callable=AsyncMock,
+                return_value="response",
+            ),
+            patch("babel_tower.mcp_server.notify", return_value=True) as mock_notify,
+        ):
+            await converse(message="Hallo, was soll ich tun?")
+            mock_notify.assert_called_once_with("Babel Tower", "Hallo, was soll ich tun?")
+
+    @pytest.mark.anyio
+    async def test_no_message_skips_notification(self) -> None:
+        with (
+            patch(
+                "babel_tower.mcp_server.run_pipeline",
+                new_callable=AsyncMock,
+                return_value="response",
+            ),
+            patch("babel_tower.mcp_server.notify", return_value=True) as mock_notify,
+        ):
+            await converse()
+            mock_notify.assert_not_called()
+
+    @pytest.mark.anyio
+    async def test_wait_for_response_false_returns_empty(self) -> None:
         with patch(
             "babel_tower.mcp_server.run_pipeline",
             new_callable=AsyncMock,
-            return_value="auto text",
         ) as mock_pipeline:
-            result = await listen(mode=None)
-            assert result == "auto text"
-            mock_pipeline.assert_called_once_with(mode=None, settings=_settings)
+            result = await converse(wait_for_response=False)
+            assert result == ""
+            mock_pipeline.assert_not_called()
+
+    @pytest.mark.anyio
+    async def test_wait_for_response_false_with_message(self) -> None:
+        with (
+            patch(
+                "babel_tower.mcp_server.run_pipeline",
+                new_callable=AsyncMock,
+            ) as mock_pipeline,
+            patch("babel_tower.mcp_server.notify", return_value=True) as mock_notify,
+        ):
+            result = await converse(message="Suche im Code...", wait_for_response=False)
+            assert result == ""
+            mock_notify.assert_called_once_with("Babel Tower", "Suche im Code...")
+            mock_pipeline.assert_not_called()
 
 
 class TestSetModeTool:

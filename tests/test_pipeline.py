@@ -100,6 +100,60 @@ class TestRunPipeline:
             assert all(t == "Babel Tower" for t in titles)
 
 
+class TestRunPipelineClipboard:
+    @pytest.mark.anyio
+    async def test_clipboard_false_skips_copy(self, mock_settings: Settings) -> None:
+        with (
+            patch(
+                "babel_tower.pipeline.record_speech",
+                new_callable=AsyncMock,
+                return_value=BytesIO(b"fake"),
+            ),
+            patch(
+                "babel_tower.pipeline.transcribe",
+                new_callable=AsyncMock,
+                return_value="raw text",
+            ),
+            patch(
+                "babel_tower.pipeline.process_transcript",
+                new_callable=AsyncMock,
+                return_value="processed text",
+            ),
+            patch("babel_tower.pipeline.copy_to_clipboard", return_value=True) as mock_clip,
+            patch("babel_tower.pipeline.notify", return_value=True),
+        ):
+            result = await run_pipeline(settings=mock_settings, clipboard=False)
+            assert result == "processed text"
+            mock_clip.assert_not_called()
+
+    @pytest.mark.anyio
+    async def test_clipboard_false_skips_final_notify(self, mock_settings: Settings) -> None:
+        with (
+            patch(
+                "babel_tower.pipeline.record_speech",
+                new_callable=AsyncMock,
+                return_value=BytesIO(b"fake"),
+            ),
+            patch(
+                "babel_tower.pipeline.transcribe",
+                new_callable=AsyncMock,
+                return_value="raw text",
+            ),
+            patch(
+                "babel_tower.pipeline.process_transcript",
+                new_callable=AsyncMock,
+                return_value="processed text",
+            ),
+            patch("babel_tower.pipeline.copy_to_clipboard", return_value=True),
+            patch("babel_tower.pipeline.notify", return_value=True) as mock_notify,
+        ):
+            await run_pipeline(settings=mock_settings, clipboard=False)
+            # Should have 3 intermediate notifications but NOT the final result notification
+            assert mock_notify.call_count == 3
+            bodies = [call.args[1] for call in mock_notify.call_args_list]
+            assert "processed text" not in bodies
+
+
 class TestRunPipelineReview:
     @pytest.mark.anyio
     async def test_review_enabled_passes_through_rofi(self, clean_env: pytest.MonkeyPatch) -> None:
