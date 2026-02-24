@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     stt_url: str = "http://localhost:9000"
     stt_model: str = "large-v3"
     stt_language: str = "de"
+    stt_timeout: float = 30.0
 
     # LLM Postprocessing (M5)
     llm_url: str = "http://m5:4000"

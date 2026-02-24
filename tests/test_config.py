@@ -11,6 +11,7 @@ class TestSettingsDefaults:
         assert settings.stt_url == "http://localhost:9000"
         assert settings.stt_model == "large-v3"
         assert settings.stt_language == "de"
+        assert settings.stt_timeout == 30.0
 
     def test_llm_defaults(self, clean_env: pytest.MonkeyPatch) -> None:
         settings = Settings()

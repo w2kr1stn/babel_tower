@@ -2,6 +2,7 @@ from fastmcp import FastMCP
 
 from babel_tower.config import Settings
 from babel_tower.pipeline import run_pipeline
+from babel_tower.processing import get_available_modes
 
 mcp = FastMCP("babel-tower")
 
@@ -30,7 +31,7 @@ async def set_mode(
 
     Available modes: strukturieren, bereinigen, durchreichen.
     """
-    valid_modes = {"strukturieren", "bereinigen", "durchreichen"}
+    valid_modes = get_available_modes(_settings)
     if mode not in valid_modes:
         return f"Unknown mode: {mode}. Valid: {', '.join(sorted(valid_modes))}"
     _settings.default_mode = mode

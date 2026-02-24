@@ -19,7 +19,7 @@ async def transcribe(audio: bytes | BytesIO, settings: Settings | None = None) -
     files = {"file": ("audio.wav", audio, "audio/wav")}
     data = {"model": settings.stt_model, "language": settings.stt_language}
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=settings.stt_timeout) as client:
         try:
             response = await client.post(url, files=files, data=data)
         except httpx.ConnectError as e:

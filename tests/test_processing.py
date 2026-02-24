@@ -4,7 +4,7 @@ import httpx
 import pytest
 
 from babel_tower.config import Settings
-from babel_tower.processing import ProcessingError, process_transcript
+from babel_tower.processing import ProcessingError, get_available_modes, process_transcript
 
 
 @pytest.fixture
@@ -31,6 +31,17 @@ def _llm_response(content: str) -> httpx.Response:
             ],
         },
     )
+
+
+class TestGetAvailableModes:
+    def test_returns_modes_from_prompts_dir(self, processing_settings: Settings) -> None:
+        modes = get_available_modes(processing_settings)
+        assert modes == {"strukturieren", "bereinigen", "durchreichen"}
+
+    def test_returns_empty_for_missing_dir(self, clean_env: pytest.MonkeyPatch) -> None:
+        clean_env.setenv("BABEL_PROMPTS_DIR", "/nonexistent/path")
+        modes = get_available_modes(Settings())
+        assert modes == set()
 
 
 class TestAutoModeSelection:
