@@ -186,7 +186,7 @@ class TestRecordSpeechBlocking:
 
 
 class TestRecordSpeechAsync:
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     @patch("babel_tower.audio.load_silero_vad")
     @patch("babel_tower.audio.VADIterator", FakeVADIterator)
     @patch("babel_tower.audio.sd.InputStream")

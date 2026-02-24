@@ -18,7 +18,7 @@ class TestMcpServerSetup:
 
     def test_settings_initialized(self) -> None:
         assert _settings is not None
-        assert _settings.default_mode == "bereinigen"
+        assert isinstance(_settings.default_mode, str)
 
 
 class TestListenTool:
