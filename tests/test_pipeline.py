@@ -100,6 +100,82 @@ class TestRunPipeline:
             assert all(t == "Babel Tower" for t in titles)
 
 
+class TestRunPipelineReview:
+    @pytest.mark.anyio
+    async def test_review_enabled_passes_through_rofi(self, clean_env: pytest.MonkeyPatch) -> None:
+        clean_env.setenv("BABEL_STT_URL", "http://test:9000")
+        clean_env.setenv("BABEL_LLM_URL", "http://test:4000")
+        clean_env.setenv("BABEL_REVIEW_ENABLED", "true")
+        settings = Settings()
+
+        with (
+            patch(
+                "babel_tower.pipeline.record_speech",
+                new_callable=AsyncMock,
+                return_value=BytesIO(b"fake"),
+            ),
+            patch(
+                "babel_tower.pipeline.transcribe",
+                new_callable=AsyncMock,
+                return_value="raw text",
+            ),
+            patch(
+                "babel_tower.pipeline.process_transcript",
+                new_callable=AsyncMock,
+                return_value="processed text",
+            ),
+            patch("babel_tower.pipeline.copy_to_clipboard", return_value=True),
+            patch("babel_tower.pipeline.notify", return_value=True),
+            patch("babel_tower.review.subprocess.run") as mock_rofi,
+        ):
+            from unittest.mock import MagicMock
+
+            mock_result = MagicMock()
+            mock_result.returncode = 0
+            mock_result.stdout = "reviewed\n"
+            mock_rofi.return_value = mock_result
+
+            result = await run_pipeline(settings=settings)
+            assert result == "reviewed"
+
+    @pytest.mark.anyio
+    async def test_review_dismissed_returns_empty(self, clean_env: pytest.MonkeyPatch) -> None:
+        clean_env.setenv("BABEL_STT_URL", "http://test:9000")
+        clean_env.setenv("BABEL_LLM_URL", "http://test:4000")
+        clean_env.setenv("BABEL_REVIEW_ENABLED", "true")
+        settings = Settings()
+
+        with (
+            patch(
+                "babel_tower.pipeline.record_speech",
+                new_callable=AsyncMock,
+                return_value=BytesIO(b"fake"),
+            ),
+            patch(
+                "babel_tower.pipeline.transcribe",
+                new_callable=AsyncMock,
+                return_value="raw text",
+            ),
+            patch(
+                "babel_tower.pipeline.process_transcript",
+                new_callable=AsyncMock,
+                return_value="processed text",
+            ),
+            patch("babel_tower.pipeline.copy_to_clipboard", return_value=True),
+            patch("babel_tower.pipeline.notify", return_value=True) as mock_notify,
+            patch("babel_tower.review.subprocess.run") as mock_rofi,
+        ):
+            from unittest.mock import MagicMock
+
+            mock_result = MagicMock()
+            mock_result.returncode = 1
+            mock_rofi.return_value = mock_result
+
+            result = await run_pipeline(settings=settings)
+            assert result == ""
+            mock_notify.assert_any_call("Babel Tower", "Verworfen", "low")
+
+
 class TestProcessFile:
     @pytest.mark.anyio
     async def test_processes_existing_file(self, mock_settings: Settings, tmp_path: object) -> None:

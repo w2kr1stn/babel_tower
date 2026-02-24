@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     # Processing
     default_mode: str = "bereinigen"
     durchreichen_max_words: int = 5
+    review_enabled: bool = False
 
     # Prompts
     prompts_dir: str = "prompts"

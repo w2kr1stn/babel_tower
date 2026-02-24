@@ -37,6 +37,15 @@ async def run_pipeline(
         notify("Babel Tower", "M5 offline — Roh-Transkript verwendet", "normal")
         result = transcript
 
+    if settings.review_enabled:
+        from babel_tower.review import review_text
+
+        reviewed = review_text(result)
+        if reviewed is None:
+            notify("Babel Tower", "Verworfen", "low")
+            return ""
+        result = reviewed
+
     copy_to_clipboard(result)
     notify("Babel Tower", result[:100])
 
@@ -69,6 +78,15 @@ async def process_file(
     except ProcessingError:
         notify("Babel Tower", "M5 offline — Roh-Transkript verwendet", "normal")
         result = transcript
+
+    if settings.review_enabled:
+        from babel_tower.review import review_text
+
+        reviewed = review_text(result)
+        if reviewed is None:
+            notify("Babel Tower", "Verworfen", "low")
+            return ""
+        result = reviewed
 
     copy_to_clipboard(result)
     notify("Babel Tower", result[:100])

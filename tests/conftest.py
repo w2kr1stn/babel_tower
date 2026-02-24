@@ -21,6 +21,7 @@ def clean_env(monkeypatch: pytest.MonkeyPatch) -> Generator[pytest.MonkeyPatch, 
         "BABEL_DEFAULT_MODE",
         "BABEL_DURCHREICHEN_MAX_WORDS",
         "BABEL_PROMPTS_DIR",
+        "BABEL_REVIEW_ENABLED",
     ]
     for var in babel_vars:
         monkeypatch.delenv(var, raising=False)
