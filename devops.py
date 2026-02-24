@@ -51,25 +51,6 @@ def clean() -> None:
             # ----------------------
             ["find", ".", "-type", "d", "-name", "__pycache__", "-exec", "rm", "-rf", "{}", "+"],
             ["find", ".", "-type", "f", "-name", "*.pyc", "-delete"],
-            # ----------------------
-            # Extended clean up
-            # ----------------------
-            ## Python cache files
-            # ["find", ".", "-type", "d", "-name", "__pycache__", "-exec", "rm", "-rf", "{}", "+"],
-            # ["find", ".", "-type", "f", "-name", "*.pyc", "-delete"],
-            # ["find", ".", "-type", "f", "-name", "*.pyo", "-delete"],
-            # ["find", ".", "-type", "f", "-name", "*.pyd", "-delete"],
-            # ## Test and coverage artifacts
-            # ["rm", "-rf", ".pytest_cache"],
-            # ["rm", "-rf", ".coverage"],
-            # ["rm", "-rf", "htmlcov"],
-            # ## Tool caches
-            # ["rm", "-rf", ".ruff_cache"],
-            # ["rm", "-rf", ".mypy_cache"],
-            # ## Build artifacts
-            # ["rm", "-rf", "dist"],
-            # ["rm", "-rf", "build"],
-            # ["find", ".", "-type", "d", "-name", "*.egg-info", "-exec", "rm", "-rf", "{}", "+"],
             ["echo", "\n🟢 Caches & Artifacts → ✅ All fresh now"],
         ]
     )

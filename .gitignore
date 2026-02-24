@@ -24,4 +24,7 @@ htmlcov/
 .idea/
 
 # Project
+.claude/
 CLAUDE.md
+PLAN.md
+TASKS.yml
