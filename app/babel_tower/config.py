@@ -21,6 +21,12 @@ class Settings(BaseSettings):
     vad_threshold: float = 0.5
     silence_duration: float = 10.0
 
+    # TTS (M5)
+    tts_url: str = "http://m5:8000"
+    tts_voice: str = "thorsten_emotional"
+    tts_timeout: float = 10.0
+    tts_enabled: bool = False
+
     # Processing
     default_mode: str = "bereinigen"
     durchreichen_max_words: int = 5

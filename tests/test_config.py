@@ -25,6 +25,13 @@ class TestSettingsDefaults:
         assert settings.vad_threshold == 0.5
         assert settings.silence_duration == 10.0
 
+    def test_tts_defaults(self, clean_env: pytest.MonkeyPatch) -> None:
+        settings = Settings()
+        assert settings.tts_url == "http://m5:8000"
+        assert settings.tts_voice == "thorsten_emotional"
+        assert settings.tts_timeout == 10.0
+        assert settings.tts_enabled is False
+
     def test_processing_defaults(self, clean_env: pytest.MonkeyPatch) -> None:
         settings = Settings()
         assert settings.default_mode == "bereinigen"

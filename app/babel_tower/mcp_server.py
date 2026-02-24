@@ -44,7 +44,15 @@ async def converse(
               Auto-selects based on transcript length if not specified.
     """
     if message:
-        notify("Babel Tower", message)
+        if _settings.tts_enabled:
+            try:
+                from babel_tower.tts import speak
+
+                await speak(message, _settings)
+            except Exception:
+                notify("Babel Tower", message)
+        else:
+            notify("Babel Tower", message)
     if not wait_for_response:
         return ""
     return await run_pipeline(mode=mode, settings=_settings, clipboard=False)

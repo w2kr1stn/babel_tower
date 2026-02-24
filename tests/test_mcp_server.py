@@ -99,6 +99,65 @@ class TestConverseTool:
             mock_pipeline.assert_not_called()
 
 
+class TestConverseToolTTS:
+    @pytest.mark.anyio
+    async def test_tts_enabled_speaks_instead_of_notify(self) -> None:
+        original = _settings.tts_enabled
+        _settings.tts_enabled = True
+        try:
+            with (
+                patch(
+                    "babel_tower.mcp_server.run_pipeline",
+                    new_callable=AsyncMock,
+                    return_value="response",
+                ),
+                patch("babel_tower.mcp_server.notify", return_value=True) as mock_notify,
+                patch("babel_tower.tts.speak", new_callable=AsyncMock) as mock_speak,
+            ):
+                await converse(message="Hallo")
+                mock_speak.assert_called_once_with("Hallo", _settings)
+                mock_notify.assert_not_called()
+        finally:
+            _settings.tts_enabled = original
+
+    @pytest.mark.anyio
+    async def test_tts_error_falls_back_to_notify(self) -> None:
+        original = _settings.tts_enabled
+        _settings.tts_enabled = True
+        try:
+            with (
+                patch(
+                    "babel_tower.mcp_server.run_pipeline",
+                    new_callable=AsyncMock,
+                    return_value="response",
+                ),
+                patch("babel_tower.mcp_server.notify", return_value=True) as mock_notify,
+                patch(
+                    "babel_tower.tts.speak",
+                    new_callable=AsyncMock,
+                    side_effect=Exception("TTS down"),
+                ),
+            ):
+                await converse(message="Hallo")
+                mock_notify.assert_called_once_with("Babel Tower", "Hallo")
+        finally:
+            _settings.tts_enabled = original
+
+    @pytest.mark.anyio
+    async def test_tts_disabled_uses_notify(self) -> None:
+        assert not _settings.tts_enabled
+        with (
+            patch(
+                "babel_tower.mcp_server.run_pipeline",
+                new_callable=AsyncMock,
+                return_value="response",
+            ),
+            patch("babel_tower.mcp_server.notify", return_value=True) as mock_notify,
+        ):
+            await converse(message="Test")
+            mock_notify.assert_called_once_with("Babel Tower", "Test")
+
+
 class TestSetModeTool:
     @pytest.mark.anyio
     async def test_set_valid_mode_strukturieren(self) -> None:
