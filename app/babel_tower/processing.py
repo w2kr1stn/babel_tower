@@ -57,9 +57,13 @@ async def _call_llm(transcript: str, system_prompt: str, settings: Settings) -> 
         ],
     }
 
+    headers: dict[str, str] = {}
+    if settings.llm_api_key:
+        headers["Authorization"] = f"Bearer {settings.llm_api_key}"
+
     async with httpx.AsyncClient(timeout=settings.llm_timeout) as client:
         try:
-            response = await client.post(url, json=payload)
+            response = await client.post(url, json=payload, headers=headers)
         except httpx.ConnectError as e:
             raise ProcessingError(f"LLM unreachable at {settings.llm_url}") from e
         except httpx.TimeoutException as e:

@@ -10,7 +10,7 @@ services:
               count: 1
               capabilities: [gpu]
     ports:
-      - "9000:8000"
+      - "29000:8000"
     volumes:
       - stt-models:/home/ubuntu/.cache/huggingface/hub
     environment:
@@ -32,8 +32,8 @@ services:
     command: ["python", "-m", "babel_tower.cli", "daemon"]
     environment:
       - PULSE_SERVER=unix:/tmp/pulse.socket
-      - BABEL_STT_URL=http://stt:9000
-      - BABEL_LLM_URL=http://m5:4000
+      - BABEL_STT_URL=http://stt:8000
+      - BABEL_LLM_URL=http://ai-station:4000
       - BABEL_DEFAULT_MODE=strukturieren
       - WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-wayland-0}
     volumes:

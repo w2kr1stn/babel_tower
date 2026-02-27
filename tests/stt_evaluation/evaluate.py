@@ -75,8 +75,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Evaluate STT accuracy using Word Error Rate")
     parser.add_argument(
         "--stt-url",
-        default="http://localhost:9000",
-        help="STT service URL (default: http://localhost:9000)",
+        default="http://localhost:29000",
+        help="STT service URL (default: http://localhost:29000)",
     )
     parser.add_argument(
         "--wav-dir",

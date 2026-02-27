@@ -7,14 +7,14 @@ from babel_tower.config import Settings
 class TestSettingsDefaults:
     def test_stt_defaults(self, clean_env: pytest.MonkeyPatch) -> None:
         settings = Settings()
-        assert settings.stt_url == "http://localhost:9000"
+        assert settings.stt_url == "http://localhost:29000"
         assert settings.stt_model == "Systran/faster-whisper-large-v3"
         assert settings.stt_language == "de"
         assert settings.stt_timeout == 30.0
 
     def test_llm_defaults(self, clean_env: pytest.MonkeyPatch) -> None:
         settings = Settings()
-        assert settings.llm_url == "http://m5:4000"
+        assert settings.llm_url == "http://ai-station:4000"
         assert settings.llm_model == "rupt"
         assert settings.llm_timeout == 15.0
 
@@ -58,7 +58,7 @@ class TestSettingsEnvOverride:
         settings = Settings()
         assert settings.stt_language == "en"
         # Other defaults remain unchanged
-        assert settings.stt_url == "http://localhost:9000"
+        assert settings.stt_url == "http://localhost:29000"
 
     def test_numeric_env_override(self, clean_env: pytest.MonkeyPatch) -> None:
         clean_env.setenv("BABEL_AUDIO_SAMPLE_RATE", "44100")

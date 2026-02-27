@@ -5,14 +5,15 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="BABEL_")
 
     # STT
-    stt_url: str = "http://localhost:9000"
+    stt_url: str = "http://localhost:29000"
     stt_model: str = "Systran/faster-whisper-large-v3"
     stt_language: str = "de"
     stt_timeout: float = 30.0
 
     # LLM Postprocessing (M5)
-    llm_url: str = "http://m5:4000"
+    llm_url: str = "http://ai-station:4000"
     llm_model: str = "rupt"
+    llm_api_key: str = ""
     llm_timeout: float = 15.0
 
     # Audio

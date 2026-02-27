@@ -23,6 +23,9 @@ htmlcov/
 .vscode/
 .idea/
 
+# Secrets
+.env
+
 # Project
 .claude/
 CLAUDE.md
