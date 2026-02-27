@@ -9,7 +9,7 @@ app = typer.Typer(name="babel-tower", help="Voice input pipeline for Claude Code
 @app.command()
 def listen(
     mode: str | None = typer.Option(
-        None, help="Processing mode: strukturieren, bereinigen, durchreichen"
+        None, help="Processing mode: structure, clean, durchreichen"
     ),
 ) -> None:
     """Record speech, transcribe, and process."""

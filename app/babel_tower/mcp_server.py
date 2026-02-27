@@ -40,7 +40,7 @@ async def converse(
                           showing the message. If False, only show the
                           notification and return immediately (for status
                           updates while working).
-        mode: Processing mode override (strukturieren/bereinigen/durchreichen).
+        mode: Processing mode override (structure/clean/durchreichen).
               Auto-selects based on transcript length if not specified.
     """
     if message:
@@ -64,7 +64,7 @@ async def set_mode(
 ) -> str:
     """Change the default processing mode for this session.
 
-    Available modes: strukturieren, bereinigen, durchreichen.
+    Available modes: structure, clean, durchreichen.
     """
     valid_modes = get_available_modes(_settings)
     if mode not in valid_modes:

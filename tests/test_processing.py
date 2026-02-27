@@ -9,8 +9,8 @@ from babel_tower.processing import ProcessingError, get_available_modes, process
 @pytest.fixture
 def prompts_dir(tmp_path: Path) -> Path:
     (tmp_path / "durchreichen.md").write_text("Passthrough prompt.")
-    (tmp_path / "bereinigen.md").write_text("Cleanup prompt.")
-    (tmp_path / "strukturieren.md").write_text("Structuring prompt.")
+    (tmp_path / "clean.md").write_text("Cleanup prompt.")
+    (tmp_path / "structure.md").write_text("Structuring prompt.")
     return tmp_path
 
 
@@ -35,7 +35,7 @@ def _llm_response(content: str) -> httpx.Response:
 class TestGetAvailableModes:
     def test_returns_modes_from_prompts_dir(self, processing_settings: Settings) -> None:
         modes = get_available_modes(processing_settings)
-        assert modes == {"strukturieren", "bereinigen", "durchreichen"}
+        assert modes == {"structure", "clean", "durchreichen"}
 
     def test_returns_empty_for_missing_dir(self, clean_env: pytest.MonkeyPatch) -> None:
         clean_env.setenv("BABEL_PROMPTS_DIR", "/nonexistent/path")
@@ -65,7 +65,7 @@ class TestAutoModeSelection:
         assert system_msg["content"] == "Passthrough prompt."
 
     @pytest.mark.anyio
-    async def test_auto_mode_bereinigen_for_normal_text(
+    async def test_auto_mode_clean_for_normal_text(
         self, processing_settings: Settings, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         captured_payload: dict[str, object] = {}
@@ -104,7 +104,7 @@ class TestExplicitMode:
         monkeypatch.setattr(httpx.AsyncClient, "post", mock_post)
         await process_transcript(
             "Kurzer Text",
-            mode="strukturieren",
+            mode="structure",
             settings=processing_settings,
         )
 
@@ -132,7 +132,7 @@ class TestErrorHandling:
         monkeypatch.setattr(httpx.AsyncClient, "post", mock_post)
         with pytest.raises(ProcessingError, match="unreachable"):
             await process_transcript(
-                "Test text here", mode="bereinigen", settings=processing_settings
+                "Test text here", mode="clean", settings=processing_settings
             )
 
     @pytest.mark.anyio
@@ -147,7 +147,7 @@ class TestErrorHandling:
         monkeypatch.setattr(httpx.AsyncClient, "post", mock_post)
         with pytest.raises(ProcessingError, match="timed out"):
             await process_transcript(
-                "Test text here", mode="bereinigen", settings=processing_settings
+                "Test text here", mode="clean", settings=processing_settings
             )
 
     @pytest.mark.anyio
@@ -162,7 +162,7 @@ class TestErrorHandling:
         monkeypatch.setattr(httpx.AsyncClient, "post", mock_post)
         with pytest.raises(ProcessingError, match="500"):
             await process_transcript(
-                "Test text here", mode="bereinigen", settings=processing_settings
+                "Test text here", mode="clean", settings=processing_settings
             )
 
 
@@ -178,6 +178,6 @@ class TestLLMResponseParsing:
 
         monkeypatch.setattr(httpx.AsyncClient, "post", mock_post)
         result = await process_transcript(
-            "Test text here", mode="bereinigen", settings=processing_settings
+            "Test text here", mode="clean", settings=processing_settings
         )
         assert result == "Bereinigter Text mit Leerzeichen"

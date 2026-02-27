@@ -70,8 +70,8 @@ class TestRunPipeline:
             patch("babel_tower.pipeline.copy_to_clipboard", return_value=True),
             patch("babel_tower.pipeline.notify", return_value=True),
         ):
-            await run_pipeline(mode="strukturieren", settings=mock_settings)
-            mock_proc.assert_called_once_with("text", "strukturieren", mock_settings)
+            await run_pipeline(mode="structure", settings=mock_settings)
+            mock_proc.assert_called_once_with("text", "structure", mock_settings)
 
     @pytest.mark.anyio
     async def test_notifies_at_each_stage(self, mock_settings: Settings) -> None:
@@ -282,8 +282,8 @@ class TestProcessFile:
             patch("babel_tower.pipeline.copy_to_clipboard", return_value=True),
             patch("babel_tower.pipeline.notify", return_value=True),
         ):
-            await process_file(str(audio_file), mode="strukturieren", settings=mock_settings)
-            mock_proc.assert_called_once_with("text", "strukturieren", mock_settings)
+            await process_file(str(audio_file), mode="structure", settings=mock_settings)
+            mock_proc.assert_called_once_with("text", "structure", mock_settings)
 
 
 class TestGracefulDegradation:

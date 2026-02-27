@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     tts_enabled: bool = False
 
     # Processing
-    default_mode: str = "bereinigen"
+    default_mode: str = "clean"
     durchreichen_max_words: int = 5
     review_enabled: bool = False
 

@@ -34,7 +34,7 @@ services:
       - PULSE_SERVER=unix:/tmp/pulse.socket
       - BABEL_STT_URL=http://stt:8000
       - BABEL_LLM_URL=http://ai-station:4000
-      - BABEL_DEFAULT_MODE=strukturieren
+      - BABEL_DEFAULT_MODE=structure
       - WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-wayland-0}
     volumes:
       - ${XDG_RUNTIME_DIR:-/run/user/1000}/pulse/native:/tmp/pulse.socket

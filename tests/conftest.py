@@ -40,7 +40,7 @@ def env_overrides(clean_env: pytest.MonkeyPatch) -> dict[str, Any]:
         "BABEL_STT_URL": "http://custom-stt:8080",
         "BABEL_STT_MODEL": "tiny",
         "BABEL_LLM_TIMEOUT": "30.0",
-        "BABEL_DEFAULT_MODE": "strukturieren",
+        "BABEL_DEFAULT_MODE": "structure",
     }
     for key, value in overrides.items():
         clean_env.setenv(key, str(value))

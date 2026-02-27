@@ -34,7 +34,7 @@ class TestSettingsDefaults:
 
     def test_processing_defaults(self, clean_env: pytest.MonkeyPatch) -> None:
         settings = Settings()
-        assert settings.default_mode == "bereinigen"
+        assert settings.default_mode == "clean"
         assert settings.durchreichen_max_words == 5
 
     def test_prompts_dir_default(self, clean_env: pytest.MonkeyPatch) -> None:
@@ -51,7 +51,7 @@ class TestSettingsEnvOverride:
         assert settings.stt_url == "http://custom-stt:8080"
         assert settings.stt_model == "tiny"
         assert settings.llm_timeout == 30.0
-        assert settings.default_mode == "strukturieren"
+        assert settings.default_mode == "structure"
 
     def test_single_env_override(self, clean_env: pytest.MonkeyPatch) -> None:
         clean_env.setenv("BABEL_STT_LANGUAGE", "en")
