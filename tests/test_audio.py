@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+import threading
 from io import BytesIO
 from typing import Any
 from unittest.mock import MagicMock, patch
@@ -85,7 +86,7 @@ def _make_settings() -> Settings:
         audio_sample_rate=16000,
         audio_channels=1,
         vad_threshold=0.5,
-        silence_duration=10.0,
+        silence_duration=20.0,
     )
 
 
@@ -183,6 +184,25 @@ class TestRecordSpeechBlocking:
             dtype="int16",
             blocksize=512,
         )
+
+
+    @patch("babel_tower.audio.load_silero_vad")
+    @patch("babel_tower.audio.VADIterator", FakeVADIterator)
+    @patch("babel_tower.audio.sd.InputStream")
+    def test_stop_event_breaks_recording(
+        self,
+        mock_input_stream: MagicMock,
+        mock_load_vad: MagicMock,
+    ) -> None:
+        chunks = [_make_chunk(0.0)] * 100
+        mock_input_stream.return_value = FakeStream(chunks)
+        mock_load_vad.return_value = MagicMock()
+
+        stop = threading.Event()
+        stop.set()
+
+        with pytest.raises(NoSpeechError):
+            _record_speech_blocking(_make_settings(), stop_event=stop)
 
 
 class TestRecordSpeechAsync:

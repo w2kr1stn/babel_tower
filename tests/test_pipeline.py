@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+import threading
 from io import BytesIO
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -98,6 +99,31 @@ class TestRunPipeline:
             assert mock_notify.call_count == 4
             titles = [call.args[0] for call in mock_notify.call_args_list]
             assert all(t == "Babel Tower" for t in titles)
+
+    @pytest.mark.anyio
+    async def test_passes_stop_event_to_record_speech(self, mock_settings: Settings) -> None:
+        stop = threading.Event()
+        with (
+            patch(
+                "babel_tower.pipeline.record_speech",
+                new_callable=AsyncMock,
+                return_value=BytesIO(b"fake"),
+            ) as mock_record,
+            patch(
+                "babel_tower.pipeline.transcribe",
+                new_callable=AsyncMock,
+                return_value="text",
+            ),
+            patch(
+                "babel_tower.pipeline.process_transcript",
+                new_callable=AsyncMock,
+                return_value="done",
+            ),
+            patch("babel_tower.pipeline.copy_to_clipboard", return_value=True),
+            patch("babel_tower.pipeline.notify", return_value=True),
+        ):
+            await run_pipeline(settings=mock_settings, stop_event=stop)
+            mock_record.assert_called_once_with(mock_settings, stop_event=stop)
 
 
 class TestRunPipelineClipboard:

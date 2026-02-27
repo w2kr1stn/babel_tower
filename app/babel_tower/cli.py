@@ -1,9 +1,18 @@
 import asyncio
+import threading
 from pathlib import Path
 
 import typer
 
 app = typer.Typer(name="babel-tower", help="Voice input pipeline for Claude Code")
+
+
+def _wait_for_enter(stop_event: threading.Event) -> None:
+    try:
+        input()
+    except EOFError:
+        return
+    stop_event.set()
 
 
 @app.command()
@@ -15,7 +24,11 @@ def listen(
     """Record speech, transcribe, and process."""
     from babel_tower.pipeline import run_pipeline
 
-    result = asyncio.run(run_pipeline(mode=mode))
+    stop_event = threading.Event()
+    thread = threading.Thread(target=_wait_for_enter, args=(stop_event,), daemon=True)
+    thread.start()
+    typer.echo("Aufnahme läuft — Enter zum Beenden")
+    result = asyncio.run(run_pipeline(mode=mode, stop_event=stop_event))
     typer.echo(result)
 
 

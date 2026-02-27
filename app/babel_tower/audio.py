@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import threading
 from io import BytesIO
 from typing import Any
 
@@ -20,7 +21,9 @@ class NoSpeechError(Exception):
     pass
 
 
-def _record_speech_blocking(settings: Settings) -> BytesIO:
+def _record_speech_blocking(
+    settings: Settings, stop_event: threading.Event | None = None
+) -> BytesIO:
     model: Any = load_silero_vad(onnx=True)  # pyright: ignore[reportUnknownVariableType]
     vad = VADIterator(
         model,
@@ -41,6 +44,9 @@ def _record_speech_blocking(settings: Settings) -> BytesIO:
         blocksize=VAD_CHUNK_SIZE,
     ) as stream:
         for _ in range(max_chunks):
+            if stop_event and stop_event.is_set():
+                break
+
             raw, _overflowed = stream.read(VAD_CHUNK_SIZE)  # pyright: ignore[reportUnknownMemberType]
             chunk_int16: NDArray[np.int16] = np.asarray(raw, dtype=np.int16)
             mono = chunk_int16[:, 0]
@@ -73,6 +79,8 @@ def _record_speech_blocking(settings: Settings) -> BytesIO:
     return buf
 
 
-async def record_speech(settings: Settings | None = None) -> BytesIO:
+async def record_speech(
+    settings: Settings | None = None, stop_event: threading.Event | None = None
+) -> BytesIO:
     settings = settings or Settings()
-    return await asyncio.to_thread(_record_speech_blocking, settings)
+    return await asyncio.to_thread(_record_speech_blocking, settings, stop_event)

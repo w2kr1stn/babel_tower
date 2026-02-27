@@ -1,3 +1,5 @@
+import threading
+
 from babel_tower.audio import NoSpeechError, record_speech
 from babel_tower.config import Settings
 from babel_tower.output import copy_to_clipboard, notify
@@ -9,13 +11,14 @@ async def run_pipeline(
     mode: str | None = None,
     settings: Settings | None = None,
     clipboard: bool = True,
+    stop_event: threading.Event | None = None,
 ) -> str:
     """Record speech, transcribe, process, and output. Returns processed text."""
     settings = settings or Settings()
 
     notify("Babel Tower", "Aufnahme gestartet...")
     try:
-        audio = await record_speech(settings)
+        audio = await record_speech(settings, stop_event=stop_event)
     except NoSpeechError:
         notify("Babel Tower", "Keine Sprache erkannt", "low")
         return ""

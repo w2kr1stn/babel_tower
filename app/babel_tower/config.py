@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     audio_sample_rate: int = 16000
     audio_channels: int = 1
     vad_threshold: float = 0.5
-    silence_duration: float = 10.0
+    silence_duration: float = 20.0
 
     # TTS (M5)
     tts_url: str = "http://m5:8000"
