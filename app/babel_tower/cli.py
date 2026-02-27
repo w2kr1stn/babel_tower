@@ -4,7 +4,7 @@ from pathlib import Path
 
 import typer
 
-app = typer.Typer(name="babel-tower", help="Voice input pipeline for Claude Code")
+app = typer.Typer(name="babel", help="Voice input pipeline for Claude Code")
 
 
 def _wait_for_enter(stop_event: threading.Event) -> None:

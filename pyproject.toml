@@ -50,7 +50,7 @@ Homepage = "https://github.com/w2kr1stn/babel_tower"
 Repository = "https://github.com/w2kr1stn/babel_tower"
 
 [project.scripts]
-babel-tower = "babel_tower.cli:app"
+babel = "babel_tower.cli:app"
 fmt = "devops:format_code"
 test = "devops:test"
 clean = "devops:clean"
