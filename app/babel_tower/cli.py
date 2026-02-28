@@ -15,13 +15,7 @@ def _wait_for_enter(stop_event: threading.Event) -> None:
     stop_event.set()
 
 
-@app.command()
-def listen(
-    mode: str | None = typer.Option(
-        None, help="Processing mode: structure, clean, durchreichen"
-    ),
-) -> None:
-    """Record speech, transcribe, and process."""
+def _listen(mode: str | None = None) -> None:
     from babel_tower.pipeline import run_pipeline
 
     stop_event = threading.Event()
@@ -30,6 +24,28 @@ def listen(
     typer.echo("Aufnahme läuft — Enter zum Beenden")
     result = asyncio.run(run_pipeline(mode=mode, stop_event=stop_event))
     typer.echo(result)
+
+
+@app.command()
+def clean() -> None:
+    """Record speech → clean transcript (Fließtext)."""
+    _listen("clean")
+
+
+@app.command()
+def structure() -> None:
+    """Record speech → structured Markdown output."""
+    _listen("structure")
+
+
+@app.command()
+def listen(
+    mode: str | None = typer.Option(
+        None, help="Processing mode: structure, clean, durchreichen"
+    ),
+) -> None:
+    """Record speech with explicit mode (default from config)."""
+    _listen(mode)
 
 
 @app.command()
