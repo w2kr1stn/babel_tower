@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     llm_url: str = "http://ai-station:4000"
     llm_model: str = "babel"
     llm_api_key: str = ""
-    llm_timeout: float = 60.0
+    llm_timeout: float = 120.0
 
     # Audio
     audio_sample_rate: int = 16000

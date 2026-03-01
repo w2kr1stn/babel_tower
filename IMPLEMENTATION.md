@@ -172,7 +172,7 @@ config.py ──→ pydantic_settings
                         │  POST /v1/chat/completions        │
                         │  {"model":"babel",                 │
                         │   "messages":[system, user]}      │
-                        │  Timeout: llm_timeout (15s)       │
+                        │  Timeout: llm_timeout (120s)      │
                         │                                  │
                         │  Fehler? ──▶ ProcessingError     │
                         │       │                          │
@@ -236,7 +236,7 @@ class Settings(BaseSettings):
     # LLM (Nachbearbeitung)
     llm_url: str = "http://m5:4000"              # LiteLLM-Endpunkt (Tailscale)
     llm_model: str = "babel"                      # Modell-Alias in LiteLLM
-    llm_timeout: float = 15.0                    # HTTP-Timeout in Sekunden
+    llm_timeout: float = 120.0                   # HTTP-Timeout in Sekunden
 
     # Audio-Aufnahme
     audio_sample_rate: int = 16000               # Hz (Pflicht fuer silero-vad)
@@ -335,7 +335,7 @@ Pydantic uebernimmt automatisch die Typkonvertierung aus Umgebungsvariablen-Stri
 **LLM-Aufruf** (`_call_llm`):
 - API: OpenAI-kompatible `/v1/chat/completions` (LiteLLM auf M5)
 - Payload: `{"model": "babel", "messages": [{"role": "system", ...}, {"role": "user", ...}]}`
-- Timeout: konfigurierbar via `BABEL_LLM_TIMEOUT` (Standard: 15s)
+- Timeout: konfigurierbar via `BABEL_LLM_TIMEOUT` (Standard: 120s)
 - Response-Parsing mit Runtime-`assert isinstance()` fuer strikte pyright-Kompatibilitaet
 
 **Fehlerklasse:** `ProcessingError(Exception)` — LLM nicht erreichbar, Timeout, oder ungueltiger HTTP-Status.
@@ -564,8 +564,8 @@ docker run -i --rm \
 | `BABEL_STT_LANGUAGE` | `str` | `de` | Transkriptionssprache |
 | `BABEL_STT_TIMEOUT` | `float` | `30.0` | STT-Request-Timeout (Sekunden) |
 | `BABEL_LLM_URL` | `str` | `http://m5:4000` | LLM-API-Endpunkt (Tailscale) |
-| `BABEL_LLM_MODEL` | `str` | `rupt` | LiteLLM-Modell-Alias |
-| `BABEL_LLM_TIMEOUT` | `float` | `15.0` | LLM-Request-Timeout (Sekunden) |
+| `BABEL_LLM_MODEL` | `str` | `babel` | LiteLLM-Modell-Alias |
+| `BABEL_LLM_TIMEOUT` | `float` | `120.0` | LLM-Request-Timeout (Sekunden) |
 | `BABEL_AUDIO_SAMPLE_RATE` | `int` | `16000` | Abtastrate in Hz |
 | `BABEL_AUDIO_CHANNELS` | `int` | `1` | Audiokanaele (mono) |
 | `BABEL_VAD_THRESHOLD` | `float` | `0.5` | silero-vad Konfidenz-Schwelle |
