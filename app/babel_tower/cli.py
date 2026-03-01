@@ -62,6 +62,35 @@ def listen(
 
 
 @app.command()
+def revise() -> None:
+    """Record change instructions → revise previous result from clipboard."""
+    from babel_tower.audio import NoSpeechError
+    from babel_tower.pipeline import ReviseError, run_revise_pipeline
+    from babel_tower.processing import ProcessingError
+    from babel_tower.stt import STTError
+
+    stop_event = threading.Event()
+    thread = threading.Thread(target=_wait_for_enter, args=(stop_event,), daemon=True)
+    thread.start()
+    typer.echo("Aufnahme läuft — Enter zum Beenden")
+    try:
+        result = asyncio.run(run_revise_pipeline(stop_event=stop_event, strict=True))
+    except ReviseError as e:
+        typer.echo(f"Fehler: {e}", err=True)
+        raise typer.Exit(1) from None
+    except NoSpeechError:
+        raise typer.Exit(0) from None
+    except STTError as e:
+        typer.echo(f"Fehler (STT): {e}", err=True)
+        raise typer.Exit(1) from None
+    except ProcessingError as e:
+        typer.echo(f"Fehler (LLM): {e}", err=True)
+        raise typer.Exit(1) from None
+    if result:
+        typer.echo(result)
+
+
+@app.command()
 def process(
     audio_file: Path = typer.Argument(..., help="Path to WAV file"),
     mode: str | None = typer.Option(None, help="Processing mode"),

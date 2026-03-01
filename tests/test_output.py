@@ -3,7 +3,42 @@ from __future__ import annotations
 import subprocess
 from unittest.mock import patch
 
-from babel_tower.output import copy_to_clipboard, notify
+from babel_tower.output import copy_to_clipboard, notify, read_from_clipboard
+
+
+class TestReadFromClipboard:
+    @patch("babel_tower.output.subprocess.run")
+    def test_success(self, mock_run: subprocess.CompletedProcess[str]) -> None:  # type: ignore[type-arg]
+        mock_run.return_value = subprocess.CompletedProcess(
+            args=["wl-paste"], returncode=0, stdout="clipboard text"
+        )
+        result = read_from_clipboard()
+        assert result == "clipboard text"
+        mock_run.assert_called_once_with(
+            ["wl-paste", "--no-newline"],
+            check=True,
+            timeout=5,
+            capture_output=True,
+            text=True,
+        )
+
+    @patch("babel_tower.output.subprocess.run", side_effect=FileNotFoundError)
+    def test_file_not_found(self, _mock_run: object) -> None:
+        assert read_from_clipboard() is None
+
+    @patch(
+        "babel_tower.output.subprocess.run",
+        side_effect=subprocess.TimeoutExpired(cmd="wl-paste", timeout=5),
+    )
+    def test_timeout(self, _mock_run: object) -> None:
+        assert read_from_clipboard() is None
+
+    @patch(
+        "babel_tower.output.subprocess.run",
+        side_effect=subprocess.CalledProcessError(1, "wl-paste"),
+    )
+    def test_called_process_error(self, _mock_run: object) -> None:
+        assert read_from_clipboard() is None
 
 
 class TestCopyToClipboard:

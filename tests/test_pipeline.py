@@ -13,7 +13,12 @@ if "sounddevice" not in sys.modules:
 
 from babel_tower.audio import NoSpeechError  # noqa: E402
 from babel_tower.config import Settings  # noqa: E402
-from babel_tower.pipeline import process_file, run_pipeline  # noqa: E402
+from babel_tower.pipeline import (  # noqa: E402
+    ReviseError,
+    process_file,
+    run_pipeline,
+    run_revise_pipeline,
+)
 from babel_tower.processing import ProcessingError  # noqa: E402
 from babel_tower.stt import STTError  # noqa: E402
 
@@ -566,3 +571,138 @@ class TestProcessFileGracefulDegradation:
                 "Babel Tower", "LLM-Fehler: LLM timeout", "critical"
             )
             mock_clip.assert_called_once_with("raw from file")
+
+
+class TestRunRevisePipeline:
+    @pytest.mark.anyio
+    async def test_full_revise_pipeline(self, mock_settings: Settings) -> None:
+        with (
+            patch(
+                "babel_tower.pipeline.read_from_clipboard",
+                return_value="Original text from clipboard",
+            ),
+            patch(
+                "babel_tower.pipeline.record_speech",
+                new_callable=AsyncMock,
+                return_value=BytesIO(b"fake"),
+            ),
+            patch(
+                "babel_tower.pipeline.transcribe",
+                new_callable=AsyncMock,
+                return_value="ändere X zu Y",
+            ),
+            patch(
+                "babel_tower.pipeline.process_transcript",
+                new_callable=AsyncMock,
+                return_value="Revised text",
+            ) as mock_proc,
+            patch("babel_tower.pipeline.copy_to_clipboard", return_value=True) as mock_clip,
+            patch("babel_tower.pipeline.notify", return_value=True),
+        ):
+            result = await run_revise_pipeline(settings=mock_settings)
+            assert result == "Revised text"
+            mock_clip.assert_called_once_with("Revised text")
+
+            # Verify context is passed correctly
+            call_args = mock_proc.call_args
+            assert call_args is not None
+            assert call_args.args[0] == "ändere X zu Y"
+            assert call_args.kwargs["mode"] == "revise"
+            assert call_args.kwargs["context"] == (
+                "## Originaltext\n\nOriginal text from clipboard\n\n## Änderungsanweisungen"
+            )
+
+    @pytest.mark.anyio
+    async def test_empty_clipboard_returns_empty(self, mock_settings: Settings) -> None:
+        with (
+            patch("babel_tower.pipeline.read_from_clipboard", return_value=None),
+            patch("babel_tower.pipeline.notify", return_value=True) as mock_notify,
+        ):
+            result = await run_revise_pipeline(settings=mock_settings)
+            assert result == ""
+            mock_notify.assert_any_call(
+                "Babel Tower", "Clipboard ist leer — nichts zum Überarbeiten", "critical"
+            )
+
+    @pytest.mark.anyio
+    async def test_empty_clipboard_raises_in_strict(self, mock_settings: Settings) -> None:
+        with (
+            patch("babel_tower.pipeline.read_from_clipboard", return_value=""),
+            patch("babel_tower.pipeline.notify", return_value=True),
+            pytest.raises(ReviseError, match="Clipboard ist leer"),
+        ):
+            await run_revise_pipeline(settings=mock_settings, strict=True)
+
+    @pytest.mark.anyio
+    async def test_no_speech_returns_empty(self, mock_settings: Settings) -> None:
+        with (
+            patch(
+                "babel_tower.pipeline.read_from_clipboard",
+                return_value="some original text",
+            ),
+            patch(
+                "babel_tower.pipeline.record_speech",
+                new_callable=AsyncMock,
+                side_effect=NoSpeechError("No speech"),
+            ),
+            patch("babel_tower.pipeline.notify", return_value=True),
+        ):
+            result = await run_revise_pipeline(settings=mock_settings)
+            assert result == ""
+
+    @pytest.mark.anyio
+    async def test_processing_error_returns_empty_in_non_strict(
+        self, mock_settings: Settings
+    ) -> None:
+        with (
+            patch(
+                "babel_tower.pipeline.read_from_clipboard",
+                return_value="original",
+            ),
+            patch(
+                "babel_tower.pipeline.record_speech",
+                new_callable=AsyncMock,
+                return_value=BytesIO(b"fake"),
+            ),
+            patch(
+                "babel_tower.pipeline.transcribe",
+                new_callable=AsyncMock,
+                return_value="change instructions",
+            ),
+            patch(
+                "babel_tower.pipeline.process_transcript",
+                new_callable=AsyncMock,
+                side_effect=ProcessingError("LLM timeout"),
+            ),
+            patch("babel_tower.pipeline.copy_to_clipboard", return_value=True),
+            patch("babel_tower.pipeline.notify", return_value=True),
+        ):
+            result = await run_revise_pipeline(settings=mock_settings)
+            assert result == ""
+
+    @pytest.mark.anyio
+    async def test_processing_error_raises_in_strict(self, mock_settings: Settings) -> None:
+        with (
+            patch(
+                "babel_tower.pipeline.read_from_clipboard",
+                return_value="original",
+            ),
+            patch(
+                "babel_tower.pipeline.record_speech",
+                new_callable=AsyncMock,
+                return_value=BytesIO(b"fake"),
+            ),
+            patch(
+                "babel_tower.pipeline.transcribe",
+                new_callable=AsyncMock,
+                return_value="change instructions",
+            ),
+            patch(
+                "babel_tower.pipeline.process_transcript",
+                new_callable=AsyncMock,
+                side_effect=ProcessingError("LLM timeout"),
+            ),
+            patch("babel_tower.pipeline.notify", return_value=True),
+            pytest.raises(ProcessingError, match="LLM timeout"),
+        ):
+            await run_revise_pipeline(settings=mock_settings, strict=True)

@@ -12,6 +12,7 @@ def prompts_dir(tmp_path: Path) -> Path:
     (tmp_path / "durchreichen.md").write_text("Passthrough prompt.")
     (tmp_path / "clean.md").write_text("Cleanup prompt.")
     (tmp_path / "structure.md").write_text("Structuring prompt.")
+    (tmp_path / "revise.md").write_text("Revise prompt.")
     return tmp_path
 
 
@@ -36,7 +37,7 @@ def _llm_response(content: str) -> httpx.Response:
 class TestGetAvailableModes:
     def test_returns_modes_from_prompts_dir(self, processing_settings: Settings) -> None:
         modes = get_available_modes(processing_settings)
-        assert modes == {"structure", "clean", "durchreichen"}
+        assert modes == {"structure", "clean", "durchreichen", "revise"}
 
     def test_excludes_underscore_prefixed_files(self, processing_settings: Settings) -> None:
         modes = get_available_modes(processing_settings)
@@ -186,6 +187,61 @@ class TestLLMResponseParsing:
             "Test text here", mode="clean", settings=processing_settings
         )
         assert result == "Bereinigter Text mit Leerzeichen"
+
+
+class TestContextParameter:
+    @pytest.mark.anyio
+    async def test_context_prepended_to_user_message(
+        self, processing_settings: Settings, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        captured_payload: dict[str, object] = {}
+
+        async def mock_post(
+            self: httpx.AsyncClient, url: str, **kwargs: object
+        ) -> httpx.Response:
+            captured_payload.update(kwargs.get("json", {}))  # type: ignore[union-attr]
+            return _llm_response("Revised text")
+
+        monkeypatch.setattr(httpx.AsyncClient, "post", mock_post)
+        await process_transcript(
+            "ändere X zu Y",
+            mode="clean",
+            settings=processing_settings,
+            context="## Originaltext\n\nOriginal content\n\n## Änderungsanweisungen",
+        )
+
+        messages = captured_payload["messages"]
+        assert isinstance(messages, list)
+        user_msg: dict[str, object] = messages[1]
+        content = user_msg["content"]
+        assert isinstance(content, str)
+        assert content.startswith("## Originaltext")
+        assert "Original content" in content
+        assert content.endswith("ändere X zu Y")
+
+    @pytest.mark.anyio
+    async def test_no_context_sends_transcript_only(
+        self, processing_settings: Settings, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        captured_payload: dict[str, object] = {}
+
+        async def mock_post(
+            self: httpx.AsyncClient, url: str, **kwargs: object
+        ) -> httpx.Response:
+            captured_payload.update(kwargs.get("json", {}))  # type: ignore[union-attr]
+            return _llm_response("Cleaned text")
+
+        monkeypatch.setattr(httpx.AsyncClient, "post", mock_post)
+        await process_transcript(
+            "plain transcript",
+            mode="clean",
+            settings=processing_settings,
+        )
+
+        messages = captured_payload["messages"]
+        assert isinstance(messages, list)
+        user_msg: dict[str, object] = messages[1]
+        assert user_msg["content"] == "plain transcript"
 
 
 class TestFormattingFragment:

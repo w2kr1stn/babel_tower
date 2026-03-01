@@ -13,6 +13,7 @@ async def process_transcript(
     transcript: str,
     mode: str | None = None,
     settings: Settings | None = None,
+    context: str | None = None,
 ) -> str:
     settings = settings or Settings()
 
@@ -25,7 +26,8 @@ async def process_transcript(
         )
 
     system_prompt = _load_prompt(mode, settings)
-    return await _call_llm(transcript, system_prompt, settings)
+    user_message = transcript if context is None else f"{context}\n\n{transcript}"
+    return await _call_llm(user_message, system_prompt, settings)
 
 
 def resolve_prompts_dir(settings: Settings) -> Path:
