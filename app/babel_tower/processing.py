@@ -28,7 +28,7 @@ async def process_transcript(
     return await _call_llm(transcript, system_prompt, settings)
 
 
-def _resolve_prompts_dir(settings: Settings) -> Path:
+def resolve_prompts_dir(settings: Settings) -> Path:
     prompts_path = Path(settings.prompts_dir)
     if not prompts_path.is_absolute():
         prompts_path = Path(__file__).resolve().parent.parent.parent / settings.prompts_dir
@@ -39,13 +39,13 @@ def get_available_modes(settings: Settings | None = None) -> set[str]:
     settings = settings or Settings()
     return {
         p.stem
-        for p in _resolve_prompts_dir(settings).glob("*.md")
+        for p in resolve_prompts_dir(settings).glob("*.md")
         if not p.name.startswith("_")
     }
 
 
 def _load_prompt(mode: str, settings: Settings) -> str:
-    prompts_dir = _resolve_prompts_dir(settings)
+    prompts_dir = resolve_prompts_dir(settings)
     prompt_file = prompts_dir / f"{mode}.md"
     if not prompt_file.exists():
         raise ProcessingError(f"Unknown mode: {mode}")

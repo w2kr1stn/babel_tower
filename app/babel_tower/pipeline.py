@@ -1,3 +1,4 @@
+import sys
 import threading
 
 from babel_tower.audio import NoSpeechError, record_speech
@@ -38,6 +39,7 @@ async def run_pipeline(
     try:
         result = await process_transcript(transcript, mode, settings)
     except ProcessingError as e:
+        print(f"LLM-Fehler: {e}", file=sys.stderr)
         notify("Babel Tower", f"LLM-Fehler: {e}", "critical")
         result = transcript
 
@@ -82,6 +84,7 @@ async def process_file(
     try:
         result = await process_transcript(transcript, mode, settings)
     except ProcessingError as e:
+        print(f"LLM-Fehler: {e}", file=sys.stderr)
         notify("Babel Tower", f"LLM-Fehler: {e}", "critical")
         result = transcript
 

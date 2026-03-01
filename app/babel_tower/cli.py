@@ -88,5 +88,49 @@ def mcp() -> None:
     mcp_server.run()
 
 
+@app.command()
+def debug() -> None:
+    """Show resolved settings and test connectivity."""
+    from babel_tower.config import Settings
+    from babel_tower.processing import get_available_modes, resolve_prompts_dir
+
+    settings = Settings()
+    key = settings.llm_api_key
+    masked_key = f"{key[:4]}...{key[-4:]}" if len(key) > 8 else ("(set)" if key else "(empty)")
+
+    typer.echo("=== Settings ===")
+    typer.echo(f"llm_url:      {settings.llm_url}")
+    typer.echo(f"llm_model:    {settings.llm_model}")
+    typer.echo(f"llm_api_key:  {masked_key}")
+    typer.echo(f"llm_timeout:  {settings.llm_timeout}s")
+    typer.echo(f"stt_url:      {settings.stt_url}")
+    typer.echo(f"default_mode: {settings.default_mode}")
+
+    prompts_dir = resolve_prompts_dir(settings)
+    typer.echo("\n=== Prompts ===")
+    typer.echo(f"prompts_dir:  {prompts_dir}")
+    typer.echo(f"exists:       {prompts_dir.exists()}")
+    formatting = prompts_dir / "_formatting.md"
+    typer.echo(f"_formatting:  {formatting.exists()}")
+    typer.echo(f"modes:        {sorted(get_available_modes(settings))}")
+
+    import httpx
+
+    typer.echo("\n=== Connectivity ===")
+    headers: dict[str, str] = {}
+    if settings.llm_api_key:
+        headers["Authorization"] = f"Bearer {settings.llm_api_key}"
+    try:
+        r = httpx.get(f"{settings.llm_url}/v1/models", headers=headers, timeout=5)
+        typer.echo(f"LLM ({settings.llm_url}): {r.status_code}")
+    except httpx.ConnectError:
+        typer.echo(f"LLM ({settings.llm_url}): UNREACHABLE", err=True)
+    try:
+        r = httpx.get(f"{settings.stt_url}/v1/models", timeout=5)
+        typer.echo(f"STT ({settings.stt_url}): {r.status_code}")
+    except httpx.ConnectError:
+        typer.echo(f"STT ({settings.stt_url}): UNREACHABLE", err=True)
+
+
 if __name__ == "__main__":
     app()
