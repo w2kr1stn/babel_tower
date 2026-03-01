@@ -1,12 +1,13 @@
 from collections.abc import Generator
 from typing import Any
 
+import babel_tower.config as _config_mod
 import pytest
 
 
 @pytest.fixture
 def clean_env(monkeypatch: pytest.MonkeyPatch) -> Generator[pytest.MonkeyPatch]:
-    """Remove all BABEL_ env vars so tests start from a clean state."""
+    """Remove all BABEL_ env vars and disable .env loading so tests start from a clean state."""
     babel_vars = [
         "BABEL_STT_URL",
         "BABEL_STT_MODEL",
@@ -31,6 +32,9 @@ def clean_env(monkeypatch: pytest.MonkeyPatch) -> Generator[pytest.MonkeyPatch]:
     ]
     for var in babel_vars:
         monkeypatch.delenv(var, raising=False)
+    # Prevent .env file from leaking into tests
+    patched_config = {**_config_mod.Settings.model_config, "env_file": None}
+    monkeypatch.setattr(_config_mod.Settings, "model_config", patched_config)
     yield monkeypatch
 
 

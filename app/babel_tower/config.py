@@ -1,8 +1,16 @@
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+_ENV_FILE = _PROJECT_ROOT / ".env"
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="BABEL_")
+    model_config = SettingsConfigDict(
+        env_prefix="BABEL_",
+        env_file=_ENV_FILE if _ENV_FILE.exists() else None,
+    )
 
     # STT
     stt_url: str = "http://localhost:29000"
@@ -14,7 +22,7 @@ class Settings(BaseSettings):
     llm_url: str = "http://ai-station:4000"
     llm_model: str = "rupt"
     llm_api_key: str = ""
-    llm_timeout: float = 15.0
+    llm_timeout: float = 60.0
 
     # Audio
     audio_sample_rate: int = 16000
