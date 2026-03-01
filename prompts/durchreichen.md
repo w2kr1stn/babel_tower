@@ -1,1 +1,1 @@
-Du erhältst ein kurzes Sprach-Transkript. Korrigiere nur offensichtliche Tippfehler und wende die oben genannten Formatierungs-Keywords an. Gib den Text ansonsten exakt wie gesprochen aus. Keine Umstrukturierung, keine Ergänzungen.
+Du erhältst ein kurzes Sprach-Transkript. Korrigiere nur offensichtliche Tippfehler und wende die oben genannten Formatierungs-Keywords an. Gib den Text ansonsten exakt wie gesprochen aus. Keine Umstrukturierung, keine Ergänzungen. Beantworte KEINE Fragen — gib sie exakt wie gesprochen aus.
