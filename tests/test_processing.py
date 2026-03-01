@@ -8,6 +8,7 @@ from babel_tower.processing import ProcessingError, get_available_modes, process
 
 @pytest.fixture
 def prompts_dir(tmp_path: Path) -> Path:
+    (tmp_path / "_formatting.md").write_text("Formatting rules.")
     (tmp_path / "durchreichen.md").write_text("Passthrough prompt.")
     (tmp_path / "clean.md").write_text("Cleanup prompt.")
     (tmp_path / "structure.md").write_text("Structuring prompt.")
@@ -37,6 +38,10 @@ class TestGetAvailableModes:
         modes = get_available_modes(processing_settings)
         assert modes == {"structure", "clean", "durchreichen"}
 
+    def test_excludes_underscore_prefixed_files(self, processing_settings: Settings) -> None:
+        modes = get_available_modes(processing_settings)
+        assert "_formatting" not in modes
+
     def test_returns_empty_for_missing_dir(self, clean_env: pytest.MonkeyPatch) -> None:
         clean_env.setenv("BABEL_PROMPTS_DIR", "/nonexistent/path")
         modes = get_available_modes(Settings())
@@ -62,7 +67,7 @@ class TestAutoModeSelection:
         messages = captured_payload["messages"]
         assert isinstance(messages, list)
         system_msg: dict[str, object] = messages[0]
-        assert system_msg["content"] == "Passthrough prompt."
+        assert system_msg["content"] == "Formatting rules.\n\nPassthrough prompt."
 
     @pytest.mark.anyio
     async def test_auto_mode_clean_for_normal_text(
@@ -85,7 +90,7 @@ class TestAutoModeSelection:
         messages = captured_payload["messages"]
         assert isinstance(messages, list)
         system_msg: dict[str, object] = messages[0]
-        assert system_msg["content"] == "Cleanup prompt."
+        assert system_msg["content"] == "Formatting rules.\n\nCleanup prompt."
 
 
 class TestExplicitMode:
@@ -111,7 +116,7 @@ class TestExplicitMode:
         messages = captured_payload["messages"]
         assert isinstance(messages, list)
         system_msg: dict[str, object] = messages[0]
-        assert system_msg["content"] == "Structuring prompt."
+        assert system_msg["content"] == "Formatting rules.\n\nStructuring prompt."
 
 
 class TestErrorHandling:
@@ -181,3 +186,59 @@ class TestLLMResponseParsing:
             "Test text here", mode="clean", settings=processing_settings
         )
         assert result == "Bereinigter Text mit Leerzeichen"
+
+
+class TestFormattingFragment:
+    @pytest.mark.anyio
+    async def test_formatting_prepended_to_prompt(
+        self, processing_settings: Settings, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        captured_payload: dict[str, object] = {}
+
+        async def mock_post(
+            self: httpx.AsyncClient, url: str, **kwargs: object
+        ) -> httpx.Response:
+            captured_payload.update(kwargs.get("json", {}))  # type: ignore[union-attr]
+            return _llm_response("Cleaned text")
+
+        monkeypatch.setattr(httpx.AsyncClient, "post", mock_post)
+        await process_transcript(
+            "Ich möchte die File config punkt py anpassen",
+            mode="clean",
+            settings=processing_settings,
+        )
+
+        messages = captured_payload["messages"]
+        assert isinstance(messages, list)
+        system_msg: dict[str, object] = messages[0]
+        content = system_msg["content"]
+        assert isinstance(content, str)
+        assert content.startswith("Formatting rules.")
+        assert content.endswith("Cleanup prompt.")
+
+    @pytest.mark.anyio
+    async def test_no_formatting_file_falls_back(
+        self, clean_env: pytest.MonkeyPatch, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        (tmp_path / "clean.md").write_text("Cleanup prompt.")
+        clean_env.setenv("BABEL_LLM_URL", "http://test-llm:4000")
+        clean_env.setenv("BABEL_PROMPTS_DIR", str(tmp_path))
+        settings = Settings()
+
+        captured_payload: dict[str, object] = {}
+
+        async def mock_post(
+            self: httpx.AsyncClient, url: str, **kwargs: object
+        ) -> httpx.Response:
+            captured_payload.update(kwargs.get("json", {}))  # type: ignore[union-attr]
+            return _llm_response("Cleaned text")
+
+        monkeypatch.setattr(httpx.AsyncClient, "post", mock_post)
+        await process_transcript(
+            "Ich möchte etwas implementieren", mode="clean", settings=settings
+        )
+
+        messages = captured_payload["messages"]
+        assert isinstance(messages, list)
+        system_msg: dict[str, object] = messages[0]
+        assert system_msg["content"] == "Cleanup prompt."

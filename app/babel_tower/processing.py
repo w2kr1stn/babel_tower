@@ -37,14 +37,25 @@ def _resolve_prompts_dir(settings: Settings) -> Path:
 
 def get_available_modes(settings: Settings | None = None) -> set[str]:
     settings = settings or Settings()
-    return {p.stem for p in _resolve_prompts_dir(settings).glob("*.md")}
+    return {
+        p.stem
+        for p in _resolve_prompts_dir(settings).glob("*.md")
+        if not p.name.startswith("_")
+    }
 
 
 def _load_prompt(mode: str, settings: Settings) -> str:
-    prompt_file = _resolve_prompts_dir(settings) / f"{mode}.md"
+    prompts_dir = _resolve_prompts_dir(settings)
+    prompt_file = prompts_dir / f"{mode}.md"
     if not prompt_file.exists():
         raise ProcessingError(f"Unknown mode: {mode}")
-    return prompt_file.read_text()
+
+    parts: list[str] = []
+    formatting_file = prompts_dir / "_formatting.md"
+    if formatting_file.exists():
+        parts.append(formatting_file.read_text())
+    parts.append(prompt_file.read_text())
+    return "\n\n".join(parts)
 
 
 async def _call_llm(transcript: str, system_prompt: str, settings: Settings) -> str:
