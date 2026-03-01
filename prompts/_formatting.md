@@ -43,7 +43,7 @@ Erkenne Keywords auch bei abweichender Schreibweise durch die STT-Pipeline (z.B.
 
 ### Keyword: Bold
 
-"Bold" / "Fett" markiert den FOLGENDEN Span als fett. Entferne das Keyword, umschließe den Span mit `**...**`.
+"Bold" / "Bolt" / "Fett" markiert den FOLGENDEN Span als fett. Entferne das Keyword, umschließe den Span mit `**...**`.
 
 - "das ist Bold wichtig" → "das ist **wichtig**"
 - "Fett Achtung bitte lesen" → "**Achtung** bitte lesen"
