@@ -48,9 +48,11 @@ Erkenne Keywords auch bei abweichender Schreibweise durch die STT-Pipeline (z.B.
 - "das ist Bold wichtig" → "das ist **wichtig**"
 - "Fett Achtung bitte lesen" → "**Achtung** bitte lesen"
 
-### Groß-/Kleinschreibung (innerhalb von Keyword-Spans)
+### Groß-/Kleinschreibung (NUR innerhalb von File / File-Path / Branch Name)
 
-Default: Alle formatierten Begriffe (File, File-Path, Branch Name) werden **lowercase** und **zusammengeschrieben** ausgegeben, es sei denn, der Sprecher sagt explizit einen Case-Modifier:
+WICHTIG: Diese Regeln betreffen AUSSCHLIESSLICH den Inhalt von File-, File-Path- und Branch-Name-Spans. Der restliche Text behält normale deutsche Rechtschreibung (Substantive groß, Satzanfänge groß, Satzzeichen).
+
+Default innerhalb dieser Spans: **lowercase** und **zusammengeschrieben**, es sei denn ein Case-Modifier wird gesprochen:
 
 | Modifier | Ergebnis | Beispiel gesprochen → Ausgabe |
 |---|---|---|
