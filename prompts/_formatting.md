@@ -11,6 +11,7 @@ Erkenne Keywords auch bei abweichender Schreibweise durch die STT-Pipeline (z.B.
 - "die File config punkt py anpassen" → "die `config.py` anpassen"
 - "schau dir File index punkt ts an" → "schau dir `index.ts` an"
 - "in der File unter Strich formatting punkt md" → "in der `_formatting.md`"
+- "File test Unterstrich helper punkt py" → "`test_helper.py`"
 
 ### Keyword: File-Path
 
@@ -27,6 +28,7 @@ Erkenne Keywords auch bei abweichender Schreibweise durch die STT-Pipeline (z.B.
 - "auf Branch Name feature slash add login page" → "auf `feature/add-login-page`"
 - "merge Branch Name main" → "merge `main`"
 - "Branch Name fix slash update config" → "`fix/update-config`"
+- "Branch Name feature slash my Unterstrich feature" → "`feature/my_feature`"
 
 ### Keyword: Quote
 
@@ -67,12 +69,14 @@ Der Case-Modifier selbst wird ENTFERNT — er erscheint nicht in der Ausgabe.
 
 ### Zeichenersetzung (innerhalb von Keyword-Spans)
 
+**VORRANG**: Explizit gesprochene Zeichen haben IMMER Vorrang vor Default-Regeln (z.B. Leerzeichen→Bindestrich bei Branch Name). Wenn der Sprecher "Unterstrich" sagt, wird `_` ausgegeben — auch in einem Branch-Name-Span, wo Leerzeichen sonst zu `-` würden.
+
 | Gesprochen | Zeichen | Hinweis |
 |---|---|---|
 | "Punkt" | `.` | Dateiendung |
 | "Slash" | `/` | Pfadtrenner |
-| "Unterstrich", "unter Strich", "Underscore" | `_` | STT trennt oft in zwei Wörter |
-| "Bindestrich", "Minus" | `-` | |
+| "Unterstrich", "unter Strich", "Underscore", "Under Score", "Unter Strich" | `_` | STT-Varianten beachten! |
+| "Dash", "Minus" | `-` | |
 
 ### End-Marker: Cut
 
