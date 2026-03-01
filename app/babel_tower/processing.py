@@ -69,6 +69,7 @@ async def _call_llm(transcript: str, system_prompt: str, settings: Settings) -> 
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": transcript},
         ],
+        "reasoning_effort": "none",
     }
 
     headers: dict[str, str] = {}
