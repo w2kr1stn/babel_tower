@@ -72,8 +72,16 @@ Der Case-Modifier selbst wird ENTFERNT — er erscheint nicht in der Ausgabe.
 | "Unterstrich", "unter Strich", "Underscore" | `_` | STT trennt oft in zwei Wörter |
 | "Bindestrich", "Minus" | `-` | |
 
+### End-Marker: Ende / End
+
+"Ende" / "End" schließt den aktuellen Formatierungs-Span explizit. Der End-Marker wird ENTFERNT. Ohne End-Marker läuft der Span bis zum Kontextwechsel (wie bisher).
+
+- "Bold nur eine Ende Änderung pro Commit" → "**nur eine** Änderung pro Commit"
+- "Quote wichtig Ende steht hier" → "\"wichtig\" steht hier"
+- "Bold komplett alles fett" → "**komplett alles fett**" (kein End-Marker → bis Satzende)
+
 ### Anwendung
 
 1. Das Keyword selbst wird ENTFERNT — es erscheint NICHT in der Ausgabe
-2. Der formatierte Span reicht vom Keyword bis zum Kontextwechsel zurück zu normalem Deutsch
+2. Der formatierte Span reicht vom Keyword bis zum End-Marker ("Ende"/"End") oder bis zum Kontextwechsel zurück zu normalem Deutsch
 3. Diese Regeln gelten IMMER, unabhängig vom Verarbeitungsmodus
