@@ -26,7 +26,8 @@ async def process_transcript(
         )
 
     system_prompt = _load_prompt(mode, settings)
-    user_message = transcript if context is None else f"{context}\n\n{transcript}"
+    content = transcript if context is None else f"{context}\n\n{transcript}"
+    user_message = f"<<<TRANSKRIPT>>>\n{content}\n<<<ENDE>>>"
     return await _call_llm(user_message, system_prompt, settings)
 
 

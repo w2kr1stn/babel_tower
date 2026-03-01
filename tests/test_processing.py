@@ -215,9 +215,11 @@ class TestContextParameter:
         user_msg: dict[str, object] = messages[1]
         content = user_msg["content"]
         assert isinstance(content, str)
-        assert content.startswith("## Originaltext")
+        assert content.startswith("<<<TRANSKRIPT>>>")
+        assert content.endswith("<<<ENDE>>>")
+        assert "## Originaltext" in content
         assert "Original content" in content
-        assert content.endswith("ändere X zu Y")
+        assert "ändere X zu Y" in content
 
     @pytest.mark.anyio
     async def test_no_context_sends_transcript_only(
@@ -241,7 +243,7 @@ class TestContextParameter:
         messages = captured_payload["messages"]
         assert isinstance(messages, list)
         user_msg: dict[str, object] = messages[1]
-        assert user_msg["content"] == "plain transcript"
+        assert user_msg["content"] == "<<<TRANSKRIPT>>>\nplain transcript\n<<<ENDE>>>"
 
 
 class TestFormattingFragment:
