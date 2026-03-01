@@ -1,39 +1,44 @@
-## Formatierungs-Keywords
+## Formatierungs-Keywords (HÖCHSTE PRIORITÄT)
 
-Der Sprecher verwendet englische Schlüsselwörter um bestimmte Formatierungen auszulösen. Erkenne diese Keywords auch bei abweichender Groß-/Kleinschreibung oder Schreibweise durch die STT-Pipeline (z.B. "file path", "File Path", "File-Path", "filepath" meinen alle dasselbe Keyword).
+Die folgenden Regeln haben Vorrang vor allen anderen Anweisungen. Der Sprecher verwendet englische Schlüsselwörter im deutschen Satzfluss, um Inline-Code-Formatierung auszulösen. Diese Keywords MÜSSEN erkannt und angewendet werden.
 
-### File
+Erkenne Keywords auch bei abweichender Schreibweise durch die STT-Pipeline (z.B. "file path", "File Path", "File-Path", "filepath" meinen alle dasselbe).
 
-Das Keyword "File" (einzelnes Wort) markiert den NÄCHSTEN Begriff als Dateinamen. Setze den Dateinamen in Backticks. Der Sprecher buchstabiert "Punkt" als Trennzeichen für die Dateiendung.
+### Keyword: File
 
-Beispiele:
+"File" markiert den NÄCHSTEN Begriff als Dateinamen. Entferne das Keyword, setze den Dateinamen in Backticks.
+
 - "die File config punkt py anpassen" → "die `config.py` anpassen"
 - "schau dir File index punkt ts an" → "schau dir `index.ts` an"
-- "in der File readme punkt md" → "in der `readme.md`"
+- "in der File unter Strich formatting punkt md" → "in der `_formatting.md`"
 
-### File-Path
+### Keyword: File-Path
 
-Das Keyword "File-Path" (oder "File Path", "Filepath") markiert die FOLGENDEN Begriffe als Dateipfad. Setze den gesamten Pfad in Backticks. Der Sprecher nutzt "Slash" als Verzeichnistrenner und "Punkt" für die Dateiendung.
+"File-Path" / "File Path" / "Filepath" markiert die FOLGENDEN Begriffe als Dateipfad. Entferne das Keyword, setze den Pfad in Backticks.
 
-Beispiele:
 - "im File-Path src slash utils slash helper punkt ts" → "im `src/utils/helper.ts`"
-- "öffne File Path app slash babel tower slash config punkt py" → "öffne `app/babel_tower/config.py`"
+- "unter File Path app slash babel tower slash config punkt py" → "unter `app/babel_tower/config.py`"
+- "File Path app slash babel tower slash unter Strich formatting punkt md" → "`app/babel_tower/_formatting.md`"
 
-### Branch Name
+### Keyword: Branch Name
 
-Das Keyword "Branch Name" (oder "Branch-Name", "Branchname") markiert die FOLGENDEN Begriffe als Git-Branch-Name. Setze den Branch-Namen in Backticks. Wandle Leerzeichen zwischen Wörtern in Bindestriche um (Kebab-Case). Der Sprecher nutzt "Slash" als Präfix-Trenner (z.B. "feature slash").
+"Branch Name" / "Branch-Name" / "Branchname" markiert die FOLGENDEN Begriffe als Git-Branch-Name. Entferne das Keyword, setze den Namen in Backticks. Wandle Leerzeichen in Bindestriche (Kebab-Case).
 
-Beispiele:
-- "erstell den Branch Name feature slash add login page" → "erstell den `feature/add-login-page`"
-- "auf Branch Name fix slash update config" → "auf `fix/update-config`"
+- "auf Branch Name feature slash add login page" → "auf `feature/add-login-page`"
 - "merge Branch Name main" → "merge `main`"
+- "Branch Name fix slash update config" → "`fix/update-config`"
 
-### Allgemeine Regeln
+### Zeichenersetzung (innerhalb von Keyword-Spans)
 
-- Keywords sind IMMER englisch und stehen im deutschen Satzfluss
-- Das Keyword selbst wird NICHT in die Ausgabe übernommen
-- "Punkt" → `.` (Dateiendung)
-- "Slash" → `/` (Pfadtrenner)
-- "Unterstrich" oder "Underscore" → `_`
-- "Bindestrich" oder "Minus" → `-`
-- Die Backtick-Formatierung greift ab dem Keyword bis zum nächsten natürlichen Satzbestandteil (erkennbar am Kontextwechsel zurück zu normalem Deutsch)
+| Gesprochen | Zeichen | Hinweis |
+|---|---|---|
+| "Punkt" | `.` | Dateiendung |
+| "Slash" | `/` | Pfadtrenner |
+| "Unterstrich", "unter Strich", "Underscore" | `_` | STT trennt oft in zwei Wörter |
+| "Bindestrich", "Minus" | `-` | |
+
+### Anwendung
+
+1. Das Keyword selbst wird ENTFERNT — es erscheint NICHT in der Ausgabe
+2. Der formatierte Span reicht vom Keyword bis zum Kontextwechsel zurück zu normalem Deutsch
+3. Diese Regeln gelten IMMER, unabhängig vom Verarbeitungsmodus
