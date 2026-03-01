@@ -396,7 +396,7 @@ class TestGracefulDegradation:
             result = await run_pipeline(settings=mock_settings)
             assert result == "raw transcript text"
             mock_notify.assert_any_call(
-                "Babel Tower", "M5 offline — Roh-Transkript verwendet", "normal"
+                "Babel Tower", "LLM-Fehler: LLM unreachable", "critical"
             )
             mock_clip.assert_called_once_with("raw transcript text")
 
@@ -475,6 +475,6 @@ class TestProcessFileGracefulDegradation:
             result = await process_file(str(audio_file), settings=mock_settings)
             assert result == "raw from file"
             mock_notify.assert_any_call(
-                "Babel Tower", "M5 offline — Roh-Transkript verwendet", "normal"
+                "Babel Tower", "LLM-Fehler: LLM timeout", "critical"
             )
             mock_clip.assert_called_once_with("raw from file")

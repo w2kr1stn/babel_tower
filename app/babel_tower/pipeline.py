@@ -37,8 +37,8 @@ async def run_pipeline(
     notify("Babel Tower", "Verarbeite...")
     try:
         result = await process_transcript(transcript, mode, settings)
-    except ProcessingError:
-        notify("Babel Tower", "M5 offline — Roh-Transkript verwendet", "normal")
+    except ProcessingError as e:
+        notify("Babel Tower", f"LLM-Fehler: {e}", "critical")
         result = transcript
 
     if settings.review_enabled:
@@ -81,8 +81,8 @@ async def process_file(
 
     try:
         result = await process_transcript(transcript, mode, settings)
-    except ProcessingError:
-        notify("Babel Tower", "M5 offline — Roh-Transkript verwendet", "normal")
+    except ProcessingError as e:
+        notify("Babel Tower", f"LLM-Fehler: {e}", "critical")
         result = transcript
 
     if settings.review_enabled:
