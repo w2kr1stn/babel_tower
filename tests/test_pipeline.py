@@ -401,6 +401,94 @@ class TestGracefulDegradation:
             mock_clip.assert_called_once_with("raw transcript text")
 
 
+class TestStrictMode:
+    @pytest.mark.anyio
+    async def test_no_speech_raises_in_strict(self, mock_settings: Settings) -> None:
+        with (
+            patch(
+                "babel_tower.pipeline.record_speech",
+                new_callable=AsyncMock,
+                side_effect=NoSpeechError("No speech detected"),
+            ),
+            patch("babel_tower.pipeline.notify", return_value=True),
+            pytest.raises(NoSpeechError),
+        ):
+            await run_pipeline(settings=mock_settings, strict=True)
+
+    @pytest.mark.anyio
+    async def test_stt_error_raises_in_strict(self, mock_settings: Settings) -> None:
+        with (
+            patch(
+                "babel_tower.pipeline.record_speech",
+                new_callable=AsyncMock,
+                return_value=BytesIO(b"fake"),
+            ),
+            patch(
+                "babel_tower.pipeline.transcribe",
+                new_callable=AsyncMock,
+                side_effect=STTError("service down"),
+            ),
+            patch("babel_tower.pipeline.notify", return_value=True),
+            pytest.raises(STTError, match="service down"),
+        ):
+            await run_pipeline(settings=mock_settings, strict=True)
+
+    @pytest.mark.anyio
+    async def test_empty_transcript_raises_in_strict(self, mock_settings: Settings) -> None:
+        with (
+            patch(
+                "babel_tower.pipeline.record_speech",
+                new_callable=AsyncMock,
+                return_value=BytesIO(b"fake"),
+            ),
+            patch(
+                "babel_tower.pipeline.transcribe",
+                new_callable=AsyncMock,
+                return_value="",
+            ),
+            patch("babel_tower.pipeline.notify", return_value=True),
+            pytest.raises(NoSpeechError),
+        ):
+            await run_pipeline(settings=mock_settings, strict=True)
+
+    @pytest.mark.anyio
+    async def test_processing_error_raises_in_strict(self, mock_settings: Settings) -> None:
+        with (
+            patch(
+                "babel_tower.pipeline.record_speech",
+                new_callable=AsyncMock,
+                return_value=BytesIO(b"fake"),
+            ),
+            patch(
+                "babel_tower.pipeline.transcribe",
+                new_callable=AsyncMock,
+                return_value="raw text",
+            ),
+            patch(
+                "babel_tower.pipeline.process_transcript",
+                new_callable=AsyncMock,
+                side_effect=ProcessingError("LLM timeout"),
+            ),
+            patch("babel_tower.pipeline.notify", return_value=True),
+            pytest.raises(ProcessingError, match="LLM timeout"),
+        ):
+            await run_pipeline(settings=mock_settings, strict=True)
+
+    @pytest.mark.anyio
+    async def test_strict_still_notifies(self, mock_settings: Settings) -> None:
+        with (
+            patch(
+                "babel_tower.pipeline.record_speech",
+                new_callable=AsyncMock,
+                side_effect=NoSpeechError("No speech"),
+            ),
+            patch("babel_tower.pipeline.notify", return_value=True) as mock_notify,
+            pytest.raises(NoSpeechError),
+        ):
+            await run_pipeline(settings=mock_settings, strict=True)
+        mock_notify.assert_any_call("Babel Tower", "Keine Sprache erkannt", "low")
+
+
 class TestProcessFileGracefulDegradation:
     @pytest.mark.anyio
     async def test_stt_error_returns_error_message(

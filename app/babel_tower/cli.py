@@ -16,14 +16,27 @@ def _wait_for_enter(stop_event: threading.Event) -> None:
 
 
 def _listen(mode: str | None = None) -> None:
+    from babel_tower.audio import NoSpeechError
     from babel_tower.pipeline import run_pipeline
+    from babel_tower.processing import ProcessingError
+    from babel_tower.stt import STTError
 
     stop_event = threading.Event()
     thread = threading.Thread(target=_wait_for_enter, args=(stop_event,), daemon=True)
     thread.start()
     typer.echo("Aufnahme läuft — Enter zum Beenden")
-    result = asyncio.run(run_pipeline(mode=mode, stop_event=stop_event))
-    typer.echo(result)
+    try:
+        result = asyncio.run(run_pipeline(mode=mode, stop_event=stop_event, strict=True))
+    except NoSpeechError:
+        raise typer.Exit(0) from None
+    except STTError as e:
+        typer.echo(f"Fehler (STT): {e}", err=True)
+        raise typer.Exit(1) from None
+    except ProcessingError as e:
+        typer.echo(f"Fehler (LLM): {e}", err=True)
+        raise typer.Exit(1) from None
+    if result:
+        typer.echo(result)
 
 
 @app.command()
@@ -55,12 +68,22 @@ def process(
 ) -> None:
     """Process an existing audio file."""
     from babel_tower.pipeline import process_file
+    from babel_tower.processing import ProcessingError
+    from babel_tower.stt import STTError
 
     if not audio_file.exists():
         typer.echo(f"File not found: {audio_file}", err=True)
         raise typer.Exit(1)
-    result = asyncio.run(process_file(str(audio_file), mode=mode))
-    typer.echo(result)
+    try:
+        result = asyncio.run(process_file(str(audio_file), mode=mode, strict=True))
+    except STTError as e:
+        typer.echo(f"Fehler (STT): {e}", err=True)
+        raise typer.Exit(1) from None
+    except ProcessingError as e:
+        typer.echo(f"Fehler (LLM): {e}", err=True)
+        raise typer.Exit(1) from None
+    if result:
+        typer.echo(result)
 
 
 @app.command()

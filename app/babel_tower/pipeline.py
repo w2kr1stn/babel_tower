@@ -13,8 +13,12 @@ async def run_pipeline(
     settings: Settings | None = None,
     clipboard: bool = True,
     stop_event: threading.Event | None = None,
+    strict: bool = False,
 ) -> str:
-    """Record speech, transcribe, process, and output. Returns processed text."""
+    """Record speech, transcribe, process, and output. Returns processed text.
+
+    When strict=True, errors propagate as exceptions instead of degrading gracefully.
+    """
     settings = settings or Settings()
 
     notify("Babel Tower", "Aufnahme gestartet...")
@@ -22,6 +26,8 @@ async def run_pipeline(
         audio = await record_speech(settings, stop_event=stop_event)
     except NoSpeechError:
         notify("Babel Tower", "Keine Sprache erkannt", "low")
+        if strict:
+            raise
         return ""
 
     notify("Babel Tower", "Transkribiere...")
@@ -29,18 +35,24 @@ async def run_pipeline(
         transcript = await transcribe(audio, settings)
     except STTError as e:
         notify("Babel Tower", f"STT-Fehler: {e}", "critical")
+        if strict:
+            raise
         return f"[STT-Fehler: {e}]"
 
     if not transcript:
         notify("Babel Tower", "Keine Sprache erkannt", "low")
+        if strict:
+            raise NoSpeechError("Empty transcript")
         return ""
 
     notify("Babel Tower", "Verarbeite...")
     try:
         result = await process_transcript(transcript, mode, settings)
     except ProcessingError as e:
-        print(f"LLM-Fehler: {e}", file=sys.stderr)
         notify("Babel Tower", f"LLM-Fehler: {e}", "critical")
+        if strict:
+            raise
+        print(f"LLM-Fehler: {e}", file=sys.stderr)
         result = transcript
 
     if settings.review_enabled:
@@ -64,6 +76,7 @@ async def process_file(
     mode: str | None = None,
     settings: Settings | None = None,
     clipboard: bool = True,
+    strict: bool = False,
 ) -> str:
     """Process an existing audio file through the pipeline."""
     settings = settings or Settings()
@@ -75,17 +88,23 @@ async def process_file(
         transcript = await transcribe(audio_bytes, settings)
     except STTError as e:
         notify("Babel Tower", f"STT-Fehler: {e}", "critical")
+        if strict:
+            raise
         return f"[STT-Fehler: {e}]"
 
     if not transcript:
         notify("Babel Tower", "Keine Sprache erkannt", "low")
+        if strict:
+            raise NoSpeechError("Empty transcript")
         return ""
 
     try:
         result = await process_transcript(transcript, mode, settings)
     except ProcessingError as e:
-        print(f"LLM-Fehler: {e}", file=sys.stderr)
         notify("Babel Tower", f"LLM-Fehler: {e}", "critical")
+        if strict:
+            raise
+        print(f"LLM-Fehler: {e}", file=sys.stderr)
         result = transcript
 
     if settings.review_enabled:
