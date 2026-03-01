@@ -34,7 +34,10 @@ async def process_transcript(
 def resolve_prompts_dir(settings: Settings) -> Path:
     prompts_path = Path(settings.prompts_dir)
     if not prompts_path.is_absolute():
-        prompts_path = Path(__file__).resolve().parent.parent.parent / settings.prompts_dir
+        project_root = Path(__file__).resolve().parent.parent.parent / settings.prompts_dir
+        if project_root.is_dir():
+            return project_root
+        prompts_path = Path(__file__).resolve().parent / settings.prompts_dir
     return prompts_path
 
 

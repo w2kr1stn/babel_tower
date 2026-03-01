@@ -10,6 +10,7 @@ packages = ["app/babel_tower"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "devops.py" = "devops.py"
+"prompts" = "babel_tower/prompts"
 
 [tool.hatch.build.targets.wheel.sources]
 "app" = ""
