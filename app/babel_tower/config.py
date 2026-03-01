@@ -20,7 +20,7 @@ class Settings(BaseSettings):
 
     # LLM Postprocessing (M5)
     llm_url: str = "http://ai-station:4000"
-    llm_model: str = "rupt"
+    llm_model: str = "babel"
     llm_api_key: str = ""
     llm_timeout: float = 60.0
 

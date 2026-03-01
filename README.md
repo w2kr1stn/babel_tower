@@ -25,7 +25,7 @@ Voice input pipeline for Claude Code: spoken German/English input → STT → LL
 ┌──────────────────────────┐
 │  M5 AI STATION           │
 │  LiteLLM :4000           │
-│    → model "rupt"        │
+│    → model "babel"        │
 └──────────────────────────┘
 ```
 
@@ -80,7 +80,7 @@ All settings via `BABEL_` environment variables:
 | `BABEL_STT_LANGUAGE` | `de` | Transcription language |
 | `BABEL_STT_TIMEOUT` | `30.0` | STT request timeout (seconds) |
 | `BABEL_LLM_URL` | `http://m5:4000` | LLM API endpoint (Tailscale) |
-| `BABEL_LLM_MODEL` | `rupt` | LiteLLM model alias |
+| `BABEL_LLM_MODEL` | `babel` | LiteLLM model alias |
 | `BABEL_LLM_TIMEOUT` | `15.0` | LLM request timeout (seconds) |
 | `BABEL_DEFAULT_MODE` | `bereinigen` | Default processing mode |
 | `BABEL_REVIEW_ENABLED` | `false` | Show rofi edit popup before clipboard |

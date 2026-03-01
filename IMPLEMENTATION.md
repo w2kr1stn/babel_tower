@@ -36,7 +36,7 @@ Babel Tower ist eine Voice-Input-Pipeline fuer Claude Code. Gesprochenes Deutsch
 ┌───────────────────────────────┐
 │  M5 AI Station                │
 │  LiteLLM :4000                │
-│    → Modell "rupt"            │
+│    → Modell "babel"            │
 │  AMD Radeon 8060S (RDNA 3.5)  │
 └───────────────────────────────┘
 ```
@@ -170,7 +170,7 @@ config.py ──→ pydantic_settings
                         │  System-Prompt aus prompts/*.md    │
                         │                                  │
                         │  POST /v1/chat/completions        │
-                        │  {"model":"rupt",                 │
+                        │  {"model":"babel",                 │
                         │   "messages":[system, user]}      │
                         │  Timeout: llm_timeout (15s)       │
                         │                                  │
@@ -235,7 +235,7 @@ class Settings(BaseSettings):
 
     # LLM (Nachbearbeitung)
     llm_url: str = "http://m5:4000"              # LiteLLM-Endpunkt (Tailscale)
-    llm_model: str = "rupt"                      # Modell-Alias in LiteLLM
+    llm_model: str = "babel"                      # Modell-Alias in LiteLLM
     llm_timeout: float = 15.0                    # HTTP-Timeout in Sekunden
 
     # Audio-Aufnahme
@@ -334,7 +334,7 @@ Pydantic uebernimmt automatisch die Typkonvertierung aus Umgebungsvariablen-Stri
 
 **LLM-Aufruf** (`_call_llm`):
 - API: OpenAI-kompatible `/v1/chat/completions` (LiteLLM auf M5)
-- Payload: `{"model": "rupt", "messages": [{"role": "system", ...}, {"role": "user", ...}]}`
+- Payload: `{"model": "babel", "messages": [{"role": "system", ...}, {"role": "user", ...}]}`
 - Timeout: konfigurierbar via `BABEL_LLM_TIMEOUT` (Standard: 15s)
 - Response-Parsing mit Runtime-`assert isinstance()` fuer strikte pyright-Kompatibilitaet
 

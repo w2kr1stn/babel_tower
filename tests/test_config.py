@@ -15,7 +15,7 @@ class TestSettingsDefaults:
     def test_llm_defaults(self, clean_env: pytest.MonkeyPatch) -> None:
         settings = Settings()
         assert settings.llm_url == "http://ai-station:4000"
-        assert settings.llm_model == "rupt"
+        assert settings.llm_model == "babel"
         assert settings.llm_timeout == 60.0
 
     def test_audio_defaults(self, clean_env: pytest.MonkeyPatch) -> None:
