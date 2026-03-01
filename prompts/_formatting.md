@@ -28,6 +28,41 @@ Erkenne Keywords auch bei abweichender Schreibweise durch die STT-Pipeline (z.B.
 - "merge Branch Name main" → "merge `main`"
 - "Branch Name fix slash update config" → "`fix/update-config`"
 
+### Keyword: Quote
+
+"Quote" / "Anführungszeichen" markiert den FOLGENDEN Span als in doppelte Anführungszeichen zu setzen. Entferne das Keyword.
+
+- "der Parameter heißt Quote timeout" → "der Parameter heißt \"timeout\""
+- "das Wort Quote deprecated ist wichtig" → "das Wort \"deprecated\" ist wichtig"
+
+### Keyword: Single Quote
+
+"Single Quote" markiert den FOLGENDEN Span als in einfache Anführungszeichen zu setzen. Entferne das Keyword.
+
+- "das Attribut Single Quote class" → "das Attribut 'class'"
+
+### Keyword: Bold
+
+"Bold" / "Fett" markiert den FOLGENDEN Span als fett. Entferne das Keyword, umschließe den Span mit `**...**`.
+
+- "das ist Bold wichtig" → "das ist **wichtig**"
+- "Fett Achtung bitte lesen" → "**Achtung** bitte lesen"
+
+### Groß-/Kleinschreibung (innerhalb von Keyword-Spans)
+
+Default: Alle formatierten Begriffe (File, File-Path, Branch Name) werden **lowercase** und **zusammengeschrieben** ausgegeben, es sei denn, der Sprecher sagt explizit einen Case-Modifier:
+
+| Modifier | Ergebnis | Beispiel gesprochen → Ausgabe |
+|---|---|---|
+| (kein Modifier) | lowercase | "File Config Punkt Py" → `config.py` |
+| "Capital" | Erster Buchstabe groß | "File Capital readme Punkt md" → `Readme.md` |
+| "Camel Case" | camelCase | "File Camel Case myConfig Punkt ts" → `myConfig.ts` |
+| "Pascal Case" | PascalCase | "File Pascal Case AppConfig Punkt py" → `AppConfig.py` |
+| "Kebab Case" | kebab-case | "Branch Name Kebab Case my feature" → `my-feature` |
+| "Snake Case" | snake_case | "File Snake Case test helper Punkt py" → `test_helper.py` |
+
+Der Case-Modifier selbst wird ENTFERNT — er erscheint nicht in der Ausgabe.
+
 ### Zeichenersetzung (innerhalb von Keyword-Spans)
 
 | Gesprochen | Zeichen | Hinweis |

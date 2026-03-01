@@ -78,5 +78,5 @@ CLI-Tool mit Subcommands für Voice-to-Text.
 
 - Strukturiertes Markdown
 - Sprache des Inputs beibehalten (deutsches Grundgerüst, englische Fachbegriffe)
-- Wende die oben genannten Formatierungs-Keywords an (File, File-Path, Branch Name → Backtick-Formatierung)
+- Wende die oben genannten Formatierungs-Keywords an (File, File-Path, Branch Name, Quote, Bold)
 - Gib NUR den strukturierten Text aus, keine Meta-Kommentare, keine Erklärungen

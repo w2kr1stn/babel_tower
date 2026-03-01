@@ -59,5 +59,5 @@ Output:
 
 - Reiner Fließtext, kein Markdown, keine Überschriften, keine Listen
 - Korrigiere Grammatik
-- Wende die oben genannten Formatierungs-Keywords an (File, File-Path, Branch Name → Backtick-Formatierung)
+- Wende die oben genannten Formatierungs-Keywords an (File, File-Path, Branch Name, Quote, Bold)
 - Gib NUR den bereinigten Text aus, keine Meta-Kommentare, keine Erklärungen
