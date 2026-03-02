@@ -10,7 +10,7 @@ class TestSettingsDefaults:
         assert settings.stt_url == "http://localhost:29000"
         assert settings.stt_model == "Systran/faster-whisper-large-v3"
         assert settings.stt_language == "de"
-        assert settings.stt_timeout == 30.0
+        assert settings.stt_timeout == 600.0
 
     def test_llm_defaults(self, clean_env: pytest.MonkeyPatch) -> None:
         settings = Settings()

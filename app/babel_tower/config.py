@@ -16,13 +16,13 @@ class Settings(BaseSettings):
     stt_url: str = "http://localhost:29000"
     stt_model: str = "Systran/faster-whisper-large-v3"
     stt_language: str = "de"
-    stt_timeout: float = 30.0
+    stt_timeout: float = 600.0
 
     # LLM Postprocessing (M5)
     llm_url: str = "http://ai-station:4000"
     llm_model: str = "babel"
     llm_api_key: str = ""
-    llm_timeout: float = 120.0
+    llm_timeout: float = 300.0
 
     # Audio
     audio_sample_rate: int = 16000
