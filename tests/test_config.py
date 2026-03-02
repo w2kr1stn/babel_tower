@@ -24,6 +24,7 @@ class TestSettingsDefaults:
         assert settings.audio_channels == 1
         assert settings.vad_threshold == 0.5
         assert settings.silence_duration == 20.0
+        assert settings.max_record_seconds == 600
 
     def test_tts_defaults(self, clean_env: pytest.MonkeyPatch) -> None:
         settings = Settings()

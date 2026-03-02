@@ -265,7 +265,7 @@ Pydantic uebernimmt automatisch die Typkonvertierung aus Umgebungsvariablen-Stri
 
 **Konstanten:**
 - `VAD_CHUNK_SIZE = 512` — Samples pro VAD-Verarbeitungsschritt (32 ms bei 16 kHz, Pflicht fuer silero-vad)
-- `MAX_RECORD_SECONDS = 60` — Harte Obergrenze fuer Aufnahmedauer
+- `max_record_seconds` — Konfigurierbare Obergrenze fuer Aufnahmedauer (Standard: 300s, via `BABEL_MAX_RECORD_SECONDS`)
 
 **Aufnahmealgorithmus** (`_record_speech_blocking`):
 

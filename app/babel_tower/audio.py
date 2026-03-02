@@ -14,7 +14,6 @@ from silero_vad import VADIterator, load_silero_vad
 from babel_tower.config import Settings
 
 VAD_CHUNK_SIZE = 512
-MAX_RECORD_SECONDS = 60
 
 
 class NoSpeechError(Exception):
@@ -35,7 +34,7 @@ def _record_speech_blocking(
     frames: list[NDArray[np.int16]] = []
     speech_started = False
     speech_ended = False
-    max_chunks = int(MAX_RECORD_SECONDS * settings.audio_sample_rate / VAD_CHUNK_SIZE)
+    max_chunks = int(settings.max_record_seconds * settings.audio_sample_rate / VAD_CHUNK_SIZE)
 
     with sd.InputStream(
         samplerate=settings.audio_sample_rate,
