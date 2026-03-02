@@ -51,6 +51,9 @@ class TestRunPipeline:
             ),
             patch("babel_tower.pipeline.copy_to_clipboard", return_value=True),
             patch("babel_tower.pipeline.notify", return_value=True),
+            patch("babel_tower.pipeline.save_audio"),
+            patch("babel_tower.pipeline.save_transcript"),
+            patch("babel_tower.pipeline.save_result"),
         ):
             result = await run_pipeline(settings=mock_settings)
             assert result == "processed text"
@@ -75,6 +78,9 @@ class TestRunPipeline:
             ) as mock_proc,
             patch("babel_tower.pipeline.copy_to_clipboard", return_value=True),
             patch("babel_tower.pipeline.notify", return_value=True),
+            patch("babel_tower.pipeline.save_audio"),
+            patch("babel_tower.pipeline.save_transcript"),
+            patch("babel_tower.pipeline.save_result"),
         ):
             await run_pipeline(mode="structure", settings=mock_settings)
             mock_proc.assert_called_once_with("text", "structure", mock_settings)
@@ -99,6 +105,9 @@ class TestRunPipeline:
             ),
             patch("babel_tower.pipeline.copy_to_clipboard", return_value=True),
             patch("babel_tower.pipeline.notify", return_value=True) as mock_notify,
+            patch("babel_tower.pipeline.save_audio"),
+            patch("babel_tower.pipeline.save_transcript"),
+            patch("babel_tower.pipeline.save_result"),
         ):
             await run_pipeline(settings=mock_settings)
             assert mock_notify.call_count == 4
@@ -126,6 +135,9 @@ class TestRunPipeline:
             ),
             patch("babel_tower.pipeline.copy_to_clipboard", return_value=True),
             patch("babel_tower.pipeline.notify", return_value=True),
+            patch("babel_tower.pipeline.save_audio"),
+            patch("babel_tower.pipeline.save_transcript"),
+            patch("babel_tower.pipeline.save_result"),
         ):
             await run_pipeline(settings=mock_settings, stop_event=stop)
             mock_record.assert_called_once_with(mock_settings, stop_event=stop)
@@ -152,6 +164,9 @@ class TestRunPipelineClipboard:
             ),
             patch("babel_tower.pipeline.copy_to_clipboard", return_value=True) as mock_clip,
             patch("babel_tower.pipeline.notify", return_value=True),
+            patch("babel_tower.pipeline.save_audio"),
+            patch("babel_tower.pipeline.save_transcript"),
+            patch("babel_tower.pipeline.save_result"),
         ):
             result = await run_pipeline(settings=mock_settings, clipboard=False)
             assert result == "processed text"
@@ -177,6 +192,9 @@ class TestRunPipelineClipboard:
             ),
             patch("babel_tower.pipeline.copy_to_clipboard", return_value=True),
             patch("babel_tower.pipeline.notify", return_value=True) as mock_notify,
+            patch("babel_tower.pipeline.save_audio"),
+            patch("babel_tower.pipeline.save_transcript"),
+            patch("babel_tower.pipeline.save_result"),
         ):
             await run_pipeline(settings=mock_settings, clipboard=False)
             # Should have 3 intermediate notifications but NOT the final result notification
@@ -211,6 +229,9 @@ class TestRunPipelineReview:
             ),
             patch("babel_tower.pipeline.copy_to_clipboard", return_value=True),
             patch("babel_tower.pipeline.notify", return_value=True),
+            patch("babel_tower.pipeline.save_audio"),
+            patch("babel_tower.pipeline.save_transcript"),
+            patch("babel_tower.pipeline.save_result"),
             patch("babel_tower.review.subprocess.run") as mock_rofi,
         ):
             from unittest.mock import MagicMock
@@ -248,6 +269,9 @@ class TestRunPipelineReview:
             ),
             patch("babel_tower.pipeline.copy_to_clipboard", return_value=True),
             patch("babel_tower.pipeline.notify", return_value=True) as mock_notify,
+            patch("babel_tower.pipeline.save_audio"),
+            patch("babel_tower.pipeline.save_transcript"),
+            patch("babel_tower.pipeline.save_result"),
             patch("babel_tower.review.subprocess.run") as mock_rofi,
         ):
             from unittest.mock import MagicMock
@@ -283,6 +307,8 @@ class TestProcessFile:
             ),
             patch("babel_tower.pipeline.copy_to_clipboard", return_value=True),
             patch("babel_tower.pipeline.notify", return_value=True),
+            patch("babel_tower.pipeline.save_transcript"),
+            patch("babel_tower.pipeline.save_result"),
         ):
             result = await process_file(str(audio_file), settings=mock_settings)
             assert result == "processed"
@@ -312,6 +338,8 @@ class TestProcessFile:
             ) as mock_proc,
             patch("babel_tower.pipeline.copy_to_clipboard", return_value=True),
             patch("babel_tower.pipeline.notify", return_value=True),
+            patch("babel_tower.pipeline.save_transcript"),
+            patch("babel_tower.pipeline.save_result"),
         ):
             await process_file(str(audio_file), mode="structure", settings=mock_settings)
             mock_proc.assert_called_once_with("text", "structure", mock_settings)
@@ -348,6 +376,7 @@ class TestGracefulDegradation:
             ),
             patch("babel_tower.pipeline.copy_to_clipboard", return_value=True),
             patch("babel_tower.pipeline.notify", return_value=True) as mock_notify,
+            patch("babel_tower.pipeline.save_audio"),
         ):
             result = await run_pipeline(settings=mock_settings)
             assert result == "[STT-Fehler: service unreachable]"
@@ -370,6 +399,7 @@ class TestGracefulDegradation:
             ),
             patch("babel_tower.pipeline.copy_to_clipboard", return_value=True),
             patch("babel_tower.pipeline.notify", return_value=True) as mock_notify,
+            patch("babel_tower.pipeline.save_audio"),
         ):
             result = await run_pipeline(settings=mock_settings)
             assert result == ""
@@ -397,6 +427,9 @@ class TestGracefulDegradation:
             ),
             patch("babel_tower.pipeline.copy_to_clipboard", return_value=True) as mock_clip,
             patch("babel_tower.pipeline.notify", return_value=True) as mock_notify,
+            patch("babel_tower.pipeline.save_audio"),
+            patch("babel_tower.pipeline.save_transcript"),
+            patch("babel_tower.pipeline.save_result"),
         ):
             result = await run_pipeline(settings=mock_settings)
             assert result == "raw transcript text"
@@ -434,6 +467,7 @@ class TestStrictMode:
                 side_effect=STTError("service down"),
             ),
             patch("babel_tower.pipeline.notify", return_value=True),
+            patch("babel_tower.pipeline.save_audio"),
             pytest.raises(STTError, match="service down"),
         ):
             await run_pipeline(settings=mock_settings, strict=True)
@@ -452,6 +486,7 @@ class TestStrictMode:
                 return_value="",
             ),
             patch("babel_tower.pipeline.notify", return_value=True),
+            patch("babel_tower.pipeline.save_audio"),
             pytest.raises(NoSpeechError),
         ):
             await run_pipeline(settings=mock_settings, strict=True)
@@ -475,6 +510,8 @@ class TestStrictMode:
                 side_effect=ProcessingError("LLM timeout"),
             ),
             patch("babel_tower.pipeline.notify", return_value=True),
+            patch("babel_tower.pipeline.save_audio"),
+            patch("babel_tower.pipeline.save_transcript"),
             pytest.raises(ProcessingError, match="LLM timeout"),
         ):
             await run_pipeline(settings=mock_settings, strict=True)
@@ -564,6 +601,8 @@ class TestProcessFileGracefulDegradation:
             ),
             patch("babel_tower.pipeline.copy_to_clipboard", return_value=True) as mock_clip,
             patch("babel_tower.pipeline.notify", return_value=True) as mock_notify,
+            patch("babel_tower.pipeline.save_transcript"),
+            patch("babel_tower.pipeline.save_result"),
         ):
             result = await process_file(str(audio_file), settings=mock_settings)
             assert result == "raw from file"
@@ -575,8 +614,45 @@ class TestProcessFileGracefulDegradation:
 
 class TestRunRevisePipeline:
     @pytest.mark.anyio
-    async def test_full_revise_pipeline(self, mock_settings: Settings) -> None:
+    async def test_full_revise_from_state(self, mock_settings: Settings) -> None:
         with (
+            patch("babel_tower.pipeline.load_result", return_value="Original from state"),
+            patch("babel_tower.pipeline.read_from_clipboard", return_value="clipboard"),
+            patch(
+                "babel_tower.pipeline.record_speech",
+                new_callable=AsyncMock,
+                return_value=BytesIO(b"fake"),
+            ),
+            patch(
+                "babel_tower.pipeline.transcribe",
+                new_callable=AsyncMock,
+                return_value="ändere X zu Y",
+            ),
+            patch(
+                "babel_tower.pipeline.process_transcript",
+                new_callable=AsyncMock,
+                return_value="Revised text",
+            ) as mock_proc,
+            patch("babel_tower.pipeline.copy_to_clipboard", return_value=True) as mock_clip,
+            patch("babel_tower.pipeline.notify", return_value=True),
+            patch("babel_tower.pipeline.save_result") as mock_save,
+        ):
+            result = await run_revise_pipeline(settings=mock_settings)
+            assert result == "Revised text"
+            mock_clip.assert_called_once_with("Revised text")
+            mock_save.assert_called_once_with("Revised text")
+
+            # Verify state is preferred over clipboard
+            call_args = mock_proc.call_args
+            assert call_args is not None
+            assert call_args.kwargs["context"] == (
+                "## Originaltext\n\nOriginal from state\n\n## Änderungsanweisungen"
+            )
+
+    @pytest.mark.anyio
+    async def test_falls_back_to_clipboard_when_no_state(self, mock_settings: Settings) -> None:
+        with (
+            patch("babel_tower.pipeline.load_result", return_value=None),
             patch(
                 "babel_tower.pipeline.read_from_clipboard",
                 return_value="Original text from clipboard",
@@ -596,50 +672,50 @@ class TestRunRevisePipeline:
                 new_callable=AsyncMock,
                 return_value="Revised text",
             ) as mock_proc,
-            patch("babel_tower.pipeline.copy_to_clipboard", return_value=True) as mock_clip,
+            patch("babel_tower.pipeline.copy_to_clipboard", return_value=True),
             patch("babel_tower.pipeline.notify", return_value=True),
+            patch("babel_tower.pipeline.save_result"),
         ):
             result = await run_revise_pipeline(settings=mock_settings)
             assert result == "Revised text"
-            mock_clip.assert_called_once_with("Revised text")
 
-            # Verify context is passed correctly
             call_args = mock_proc.call_args
             assert call_args is not None
-            assert call_args.args[0] == "ändere X zu Y"
-            assert call_args.kwargs["mode"] == "revise"
             assert call_args.kwargs["context"] == (
                 "## Originaltext\n\nOriginal text from clipboard\n\n## Änderungsanweisungen"
             )
 
     @pytest.mark.anyio
-    async def test_empty_clipboard_returns_empty(self, mock_settings: Settings) -> None:
+    async def test_no_state_and_no_clipboard_returns_empty(self, mock_settings: Settings) -> None:
         with (
+            patch("babel_tower.pipeline.load_result", return_value=None),
             patch("babel_tower.pipeline.read_from_clipboard", return_value=None),
             patch("babel_tower.pipeline.notify", return_value=True) as mock_notify,
         ):
             result = await run_revise_pipeline(settings=mock_settings)
             assert result == ""
             mock_notify.assert_any_call(
-                "Babel Tower", "Clipboard ist leer — nichts zum Überarbeiten", "critical"
+                "Babel Tower",
+                "Kein vorheriges Ergebnis — nichts zum Überarbeiten",
+                "critical",
             )
 
     @pytest.mark.anyio
-    async def test_empty_clipboard_raises_in_strict(self, mock_settings: Settings) -> None:
+    async def test_no_state_and_no_clipboard_raises_in_strict(
+        self, mock_settings: Settings
+    ) -> None:
         with (
+            patch("babel_tower.pipeline.load_result", return_value=None),
             patch("babel_tower.pipeline.read_from_clipboard", return_value=""),
             patch("babel_tower.pipeline.notify", return_value=True),
-            pytest.raises(ReviseError, match="Clipboard ist leer"),
+            pytest.raises(ReviseError, match="Kein vorheriges Ergebnis"),
         ):
             await run_revise_pipeline(settings=mock_settings, strict=True)
 
     @pytest.mark.anyio
     async def test_no_speech_returns_empty(self, mock_settings: Settings) -> None:
         with (
-            patch(
-                "babel_tower.pipeline.read_from_clipboard",
-                return_value="some original text",
-            ),
+            patch("babel_tower.pipeline.load_result", return_value="some original text"),
             patch(
                 "babel_tower.pipeline.record_speech",
                 new_callable=AsyncMock,
@@ -655,10 +731,7 @@ class TestRunRevisePipeline:
         self, mock_settings: Settings
     ) -> None:
         with (
-            patch(
-                "babel_tower.pipeline.read_from_clipboard",
-                return_value="original",
-            ),
+            patch("babel_tower.pipeline.load_result", return_value="original"),
             patch(
                 "babel_tower.pipeline.record_speech",
                 new_callable=AsyncMock,
@@ -683,10 +756,7 @@ class TestRunRevisePipeline:
     @pytest.mark.anyio
     async def test_processing_error_raises_in_strict(self, mock_settings: Settings) -> None:
         with (
-            patch(
-                "babel_tower.pipeline.read_from_clipboard",
-                return_value="original",
-            ),
+            patch("babel_tower.pipeline.load_result", return_value="original"),
             patch(
                 "babel_tower.pipeline.record_speech",
                 new_callable=AsyncMock,
@@ -706,3 +776,101 @@ class TestRunRevisePipeline:
             pytest.raises(ProcessingError, match="LLM timeout"),
         ):
             await run_revise_pipeline(settings=mock_settings, strict=True)
+
+
+class TestPipelineStateSaves:
+    @pytest.mark.anyio
+    async def test_run_pipeline_saves_all_three(self, mock_settings: Settings) -> None:
+        with (
+            patch(
+                "babel_tower.pipeline.record_speech",
+                new_callable=AsyncMock,
+                return_value=BytesIO(b"wav-data"),
+            ),
+            patch(
+                "babel_tower.pipeline.transcribe",
+                new_callable=AsyncMock,
+                return_value="raw text",
+            ),
+            patch(
+                "babel_tower.pipeline.process_transcript",
+                new_callable=AsyncMock,
+                return_value="processed",
+            ),
+            patch("babel_tower.pipeline.copy_to_clipboard", return_value=True),
+            patch("babel_tower.pipeline.notify", return_value=True),
+            patch("babel_tower.pipeline.save_audio") as mock_audio,
+            patch("babel_tower.pipeline.save_transcript") as mock_transcript,
+            patch("babel_tower.pipeline.save_result") as mock_result,
+        ):
+            await run_pipeline(settings=mock_settings)
+            mock_audio.assert_called_once_with(b"wav-data")
+            mock_transcript.assert_called_once_with("raw text")
+            mock_result.assert_called_once_with("processed")
+
+    @pytest.mark.anyio
+    async def test_no_speech_saves_nothing(self, mock_settings: Settings) -> None:
+        with (
+            patch(
+                "babel_tower.pipeline.record_speech",
+                new_callable=AsyncMock,
+                side_effect=NoSpeechError("No speech"),
+            ),
+            patch("babel_tower.pipeline.notify", return_value=True),
+            patch("babel_tower.pipeline.save_audio") as mock_audio,
+            patch("babel_tower.pipeline.save_transcript") as mock_transcript,
+            patch("babel_tower.pipeline.save_result") as mock_result,
+        ):
+            await run_pipeline(settings=mock_settings)
+            mock_audio.assert_not_called()
+            mock_transcript.assert_not_called()
+            mock_result.assert_not_called()
+
+    @pytest.mark.anyio
+    async def test_stt_error_saves_only_audio(self, mock_settings: Settings) -> None:
+        with (
+            patch(
+                "babel_tower.pipeline.record_speech",
+                new_callable=AsyncMock,
+                return_value=BytesIO(b"wav"),
+            ),
+            patch(
+                "babel_tower.pipeline.transcribe",
+                new_callable=AsyncMock,
+                side_effect=STTError("fail"),
+            ),
+            patch("babel_tower.pipeline.notify", return_value=True),
+            patch("babel_tower.pipeline.save_audio") as mock_audio,
+            patch("babel_tower.pipeline.save_transcript") as mock_transcript,
+            patch("babel_tower.pipeline.save_result") as mock_result,
+        ):
+            await run_pipeline(settings=mock_settings)
+            mock_audio.assert_called_once()
+            mock_transcript.assert_not_called()
+            mock_result.assert_not_called()
+
+    @pytest.mark.anyio
+    async def test_revise_saves_only_result(self, mock_settings: Settings) -> None:
+        with (
+            patch("babel_tower.pipeline.load_result", return_value="original"),
+            patch(
+                "babel_tower.pipeline.record_speech",
+                new_callable=AsyncMock,
+                return_value=BytesIO(b"fake"),
+            ),
+            patch(
+                "babel_tower.pipeline.transcribe",
+                new_callable=AsyncMock,
+                return_value="instructions",
+            ),
+            patch(
+                "babel_tower.pipeline.process_transcript",
+                new_callable=AsyncMock,
+                return_value="revised",
+            ),
+            patch("babel_tower.pipeline.copy_to_clipboard", return_value=True),
+            patch("babel_tower.pipeline.notify", return_value=True),
+            patch("babel_tower.pipeline.save_result") as mock_result,
+        ):
+            await run_revise_pipeline(settings=mock_settings)
+            mock_result.assert_called_once_with("revised")

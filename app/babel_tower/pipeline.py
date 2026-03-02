@@ -5,6 +5,7 @@ from babel_tower.audio import NoSpeechError, record_speech
 from babel_tower.config import Settings
 from babel_tower.output import copy_to_clipboard, notify, read_from_clipboard
 from babel_tower.processing import ProcessingError, process_transcript
+from babel_tower.state import load_result, save_audio, save_result, save_transcript
 from babel_tower.stt import STTError, transcribe
 
 
@@ -29,6 +30,7 @@ async def run_pipeline(
         if strict:
             raise
         return ""
+    save_audio(audio.getvalue())
 
     notify("Babel Tower", "Transkribiere...")
     try:
@@ -44,6 +46,7 @@ async def run_pipeline(
         if strict:
             raise NoSpeechError("Empty transcript")
         return ""
+    save_transcript(transcript)
 
     notify("Babel Tower", "Verarbeite...")
     try:
@@ -64,6 +67,8 @@ async def run_pipeline(
             return ""
         result = reviewed
 
+    save_result(result)
+
     if clipboard:
         copy_to_clipboard(result)
         notify("Babel Tower", result[:100])
@@ -80,12 +85,12 @@ async def run_revise_pipeline(
     stop_event: threading.Event | None = None,
     strict: bool = False,
 ) -> str:
-    """Read clipboard, record change instructions, apply revision via LLM."""
+    """Read last result (state or clipboard), record change instructions, apply revision via LLM."""
     settings = settings or Settings()
 
-    original = read_from_clipboard()
+    original = load_result() or read_from_clipboard()
     if not original or not original.strip():
-        msg = "Clipboard ist leer — nichts zum Überarbeiten"
+        msg = "Kein vorheriges Ergebnis — nichts zum Überarbeiten"
         notify("Babel Tower", msg, "critical")
         if strict:
             raise ReviseError(msg)
@@ -128,6 +133,7 @@ async def run_revise_pipeline(
         print(f"LLM-Fehler: {e}", file=sys.stderr)
         return ""
 
+    save_result(result)
     copy_to_clipboard(result)
     notify("Babel Tower", result[:100])
 
@@ -160,6 +166,7 @@ async def process_file(
         if strict:
             raise NoSpeechError("Empty transcript")
         return ""
+    save_transcript(transcript)
 
     try:
         result = await process_transcript(transcript, mode, settings)
@@ -178,6 +185,8 @@ async def process_file(
             notify("Babel Tower", "Verworfen", "low")
             return ""
         result = reviewed
+
+    save_result(result)
 
     if clipboard:
         copy_to_clipboard(result)
