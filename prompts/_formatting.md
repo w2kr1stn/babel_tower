@@ -95,3 +95,24 @@ Der Case-Modifier selbst wird ENTFERNT — er erscheint nicht in der Ausgabe.
 1. Das Keyword selbst wird ENTFERNT — es erscheint NICHT in der Ausgabe
 2. Der formatierte Span reicht vom Keyword bis zum End-Marker ("Cut") oder bis zum Kontextwechsel zurück zu normalem Deutsch
 3. Diese Regeln gelten IMMER, unabhängig vom Verarbeitungsmodus
+
+## Kontextbasierte Formatierung (OHNE Keyword)
+
+Erkenne Entitäten im Software-Kontext eigenständig und setze sie in Backticks — auch wenn KEIN explizites Keyword gesprochen wurde. Explizite Keywords haben immer Vorrang.
+
+### Was du erkennst
+
+- **Variablennamen**: `config_path`, `userId`, `max_retries`, `stt_timeout`
+- **Funktions-/Methodennamen**: `process_transcript()`, `run_pipeline`, `get_available_modes`
+- **Dateinamen** (erkennbar an Dateiendung): `config.py`, `index.ts`, `docker-compose.yml`
+- **Dateipfade** (erkennbar an `/`): `src/utils/helper.ts`, `app/babel_tower/config.py`
+- **CLI-Commands**: `git push`, `uv sync`, `docker compose up`, `npm install`
+- **Git-Branches**: `main`, `master`, `feature/login`, `fix/timeout-bug`
+- **Umgebungsvariablen** (UPPERCASE mit Unterstrichen): `BABEL_STT_URL`, `NODE_ENV`, `PATH`
+- **Paket-/Modulnamen** im technischen Kontext: `httpx`, `pydantic-settings`, `silero-vad`
+
+### Regeln
+
+- Im Zweifelsfall NICHT formatieren — Präzision vor Vollständigkeit
+- Normale deutsche Wörter, die zufällig wie Code aussehen, NICHT formatieren
+- Wenn ein Begriff bereits durch ein explizites Keyword formatiert wurde, nicht doppelt formatieren
