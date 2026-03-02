@@ -17,17 +17,28 @@ def read_from_clipboard() -> str | None:
 
 
 def copy_to_clipboard(text: str) -> bool:
-    """Copy text to clipboard via wl-copy. Returns True on success."""
+    """Copy text to clipboard (wl-copy) and primary selection (xclip). Returns True on success."""
     try:
         subprocess.run(
             ["wl-copy", text],
             check=True,
             timeout=5,
-            capture_output=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
         )
-        return True
     except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
         return False
+    try:
+        subprocess.run(
+            ["xclip", "-selection", "primary"],
+            input=text.encode(),
+            timeout=5,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+    return True
 
 
 def notify(title: str, body: str, urgency: str = "normal") -> bool:

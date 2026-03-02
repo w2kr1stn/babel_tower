@@ -46,12 +46,33 @@ class TestCopyToClipboard:
     def test_success(self, mock_run: subprocess.CompletedProcess[str]) -> None:  # type: ignore[type-arg]
         result = copy_to_clipboard("hello world")
         assert result is True
-        mock_run.assert_called_once_with(
+        assert mock_run.call_count == 2
+        mock_run.assert_any_call(
             ["wl-copy", "hello world"],
             check=True,
             timeout=5,
-            capture_output=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
         )
+        mock_run.assert_any_call(
+            ["xclip", "-selection", "primary"],
+            input=b"hello world",
+            timeout=5,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+
+    @patch("babel_tower.output.subprocess.run")
+    def test_primary_selection_failure_ignored(self, mock_run: subprocess.CompletedProcess[str]) -> None:  # type: ignore[type-arg]
+        def side_effect(*args: object, **kwargs: object) -> subprocess.CompletedProcess[bytes]:
+            cmd = args[0]
+            assert isinstance(cmd, list)
+            if cmd[0] == "xclip":
+                raise FileNotFoundError
+            return subprocess.CompletedProcess(args=cmd, returncode=0)
+
+        mock_run.side_effect = side_effect
+        assert copy_to_clipboard("text") is True
 
     @patch("babel_tower.output.subprocess.run", side_effect=FileNotFoundError)
     def test_file_not_found(self, _mock_run: object) -> None:
