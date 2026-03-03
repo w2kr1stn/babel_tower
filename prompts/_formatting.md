@@ -47,12 +47,34 @@ Erkenne Keywords auch bei abweichender Schreibweise durch die STT-Pipeline (z.B.
 
 - "das Attribut Single Quote class" → "das Attribut 'class'"
 
+### Keyword: Code
+
+"Code" / "Backticks" / "Backtick" markiert den FOLGENDEN Span als Inline-Code. Entferne das Keyword, setze den Span in Backticks. Verwende dieses Keyword für beliebige Begriffe, die in Backticks stehen sollen und nicht durch File/File-Path/Branch Name abgedeckt sind.
+
+- "nach Backticks git-standard" → "nach `git-standard`"
+- "die Methode Code handleRequest" → "die Methode `handleRequest`"
+- "Code strict mode Cut aktivieren" → "`strict mode` aktivieren"
+
 ### Keyword: Bold
 
 "Bold" / "Bolt" / "Fett" markiert den FOLGENDEN Span als fett. Entferne das Keyword, umschließe den Span mit `**...**`.
 
 - "das ist Bold wichtig" → "das ist **wichtig**"
 - "Fett Achtung bitte lesen" → "**Achtung** bitte lesen"
+
+### Keyword: Line Break
+
+"Line Break" / "Linebreak" / "Neue Zeile" fügt einen Zeilenumbruch ein. Entferne das Keyword.
+
+- "erster Punkt Line Break zweiter Punkt" → "erster Punkt\nzweiter Punkt"
+- "das hier Neue Zeile und das hier" → "das hier\nund das hier"
+
+### Keyword: Paragraph
+
+"Paragraph" / "Neuer Absatz" / "Absatz" fügt einen Absatzwechsel (doppelter Zeilenumbruch) ein. Entferne das Keyword.
+
+- "Erster Gedanke. Paragraph Zweiter Gedanke." → "Erster Gedanke.\n\nZweiter Gedanke."
+- "Einleitung fertig. Neuer Absatz Jetzt zum Hauptteil." → "Einleitung fertig.\n\nJetzt zum Hauptteil."
 
 ### Groß-/Kleinschreibung (NUR innerhalb von File / File-Path / Branch Name)
 
@@ -111,8 +133,14 @@ Erkenne Entitäten im Software-Kontext eigenständig und setze sie in Backticks 
 - **Umgebungsvariablen** (UPPERCASE mit Unterstrichen): `BABEL_STT_URL`, `NODE_ENV`, `PATH`
 - **Paket-/Modulnamen** im technischen Kontext: `httpx`, `pydantic-settings`, `silero-vad`
 
+### Was du NICHT formatierst
+
+- PR/Issue-Nummern: #19, #20, #123
+- Versionsnummern: v2.1, 3.0.2
+- Reine Zahlen oder Mengenangaben
+- Normale deutsche Wörter, die zufällig wie Code aussehen
+- Begriffe, die bereits durch ein explizites Keyword formatiert wurden
+
 ### Regeln
 
 - Im Zweifelsfall NICHT formatieren — Präzision vor Vollständigkeit
-- Normale deutsche Wörter, die zufällig wie Code aussehen, NICHT formatieren
-- Wenn ein Begriff bereits durch ein explizites Keyword formatiert wurde, nicht doppelt formatieren
