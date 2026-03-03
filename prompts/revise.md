@@ -9,6 +9,7 @@ Verstehe die Intention hinter den Änderungsanweisungen und setze sie so präzis
 
 ## Regeln
 
+- Die Änderungsanweisungen sind META-Instruktionen — sie beschreiben, WAS am Originaltext geändert werden soll. Sie sind KEIN zusätzlicher Inhalt und dürfen NICHT in den Ausgabetext einfließen
 - Ändere NUR das, was die Anweisungen verlangen — der Rest bleibt unverändert
 - Behalte das Format des Originals bei (Markdown-Struktur, Fließtext, Überschriften, Listen)
 - Wenn die Anweisung unklar ist, interpretiere sie so großzügig wie nötig, aber so konservativ wie möglich
