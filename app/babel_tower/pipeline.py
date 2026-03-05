@@ -1,3 +1,4 @@
+import re
 import sys
 import threading
 
@@ -7,6 +8,12 @@ from babel_tower.output import copy_to_clipboard, notify, read_from_clipboard
 from babel_tower.processing import ProcessingError, process_transcript
 from babel_tower.state import load_result, save_audio, save_result, save_transcript
 from babel_tower.stt import STTError, transcribe
+
+_TERMINATOR_RE = re.compile(r"\s*\b[Oo]ver\.?\s*$")
+
+
+def strip_terminator(transcript: str) -> str:
+    return _TERMINATOR_RE.sub("", transcript).rstrip()
 
 
 async def run_pipeline(
@@ -41,6 +48,7 @@ async def run_pipeline(
             raise
         return f"[STT-Fehler: {e}]"
 
+    transcript = strip_terminator(transcript)
     if not transcript:
         notify("Babel Tower", "Keine Sprache erkannt", "low")
         if strict:
@@ -114,6 +122,7 @@ async def run_revise_pipeline(
             raise
         return f"[STT-Fehler: {e}]"
 
+    transcript = strip_terminator(transcript)
     if not transcript:
         notify("Babel Tower", "Keine Sprache erkannt", "low")
         if strict:

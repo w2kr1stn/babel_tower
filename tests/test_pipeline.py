@@ -18,6 +18,7 @@ from babel_tower.pipeline import (  # noqa: E402
     process_file,
     run_pipeline,
     run_revise_pipeline,
+    strip_terminator,
 )
 from babel_tower.processing import ProcessingError  # noqa: E402
 from babel_tower.stt import STTError  # noqa: E402
@@ -874,3 +875,30 @@ class TestPipelineStateSaves:
         ):
             await run_revise_pipeline(settings=mock_settings)
             mock_result.assert_called_once_with("revised")
+
+
+class TestStripTerminator:
+    def test_removes_trailing_over(self) -> None:
+        assert strip_terminator("Das ist mein Text over") == "Das ist mein Text"
+
+    def test_removes_trailing_over_with_period(self) -> None:
+        assert strip_terminator("Das ist mein Text Over.") == "Das ist mein Text"
+
+    def test_removes_trailing_over_with_whitespace(self) -> None:
+        assert strip_terminator("Das ist mein Text over  ") == "Das ist mein Text"
+
+    def test_preserves_over_mid_sentence(self) -> None:
+        assert strip_terminator("game over and more") == "game over and more"
+
+    def test_over_alone_returns_empty(self) -> None:
+        assert strip_terminator("over") == ""
+
+    def test_empty_string_unchanged(self) -> None:
+        assert strip_terminator("") == ""
+
+    def test_no_over_unchanged(self) -> None:
+        assert strip_terminator("Hallo Welt") == "Hallo Welt"
+
+    def test_over_case_insensitive(self) -> None:
+        assert strip_terminator("Text OVER") == "Text OVER"
+        assert strip_terminator("Text Over") == "Text"
