@@ -133,11 +133,18 @@ def daemon(
 
 
 @app.command()
-def mcp() -> None:
-    """Start MCP server (STDIO transport for Claude Code)."""
+def mcp(
+    transport: str = typer.Option("stdio", help="Transport: stdio, sse, streamable-http"),
+    host: str = typer.Option("0.0.0.0", help="Bind host for HTTP transports"),
+    port: int = typer.Option(3000, help="Port for HTTP transports"),
+) -> None:
+    """Start MCP server (STDIO by default, or SSE/HTTP for persistent mode)."""
     from babel_tower.mcp_server import mcp as mcp_server
 
-    mcp_server.run()
+    if transport == "stdio":
+        mcp_server.run(transport="stdio")
+    else:
+        mcp_server.run(transport=transport, host=host, port=port)  # pyright: ignore[reportArgumentType]
 
 
 @app.command()
