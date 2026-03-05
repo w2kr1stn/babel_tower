@@ -33,8 +33,13 @@ def _record_speech_blocking(
 
     frames: list[NDArray[np.int16]] = []
     speech_started = False
-    speech_ended = False
+    ever_had_speech = False
     max_chunks = int(settings.max_record_seconds * settings.audio_sample_rate / VAD_CHUNK_SIZE)
+    timeout_chunks = int(
+        settings.inter_segment_timeout * settings.audio_sample_rate / VAD_CHUNK_SIZE
+    )
+    inter_segment_deadline: int | None = None
+    chunk_index = 0
 
     with sd.InputStream(
         samplerate=settings.audio_sample_rate,
@@ -42,8 +47,12 @@ def _record_speech_blocking(
         dtype="int16",
         blocksize=VAD_CHUNK_SIZE,
     ) as stream:
-        for _ in range(max_chunks):
+        for chunk_index in range(max_chunks):
             if stop_event and stop_event.is_set():
+                break
+
+            # Inter-segment timeout expired — done recording
+            if inter_segment_deadline is not None and chunk_index >= inter_segment_deadline:
                 break
 
             raw, _overflowed = stream.read(VAD_CHUNK_SIZE)  # pyright: ignore[reportUnknownMemberType]
@@ -55,23 +64,26 @@ def _record_speech_blocking(
 
             if vad_result is not None and "start" in vad_result:
                 speech_started = True
+                ever_had_speech = True
+                inter_segment_deadline = None
 
             if speech_started:
                 frames.append(np.array(mono, dtype=np.int16, copy=True))
 
             if vad_result is not None and "end" in vad_result:
-                speech_ended = True
-                break
+                speech_started = False
+                if timeout_chunks > 0:
+                    # Multi-segment: wait for more speech
+                    vad.reset_states()  # pyright: ignore[reportUnknownMemberType]
+                    inter_segment_deadline = chunk_index + timeout_chunks
+                else:
+                    # Legacy single-segment: stop immediately
+                    break
 
-    if not speech_started or not frames:
+    if not ever_had_speech or not frames:
         raise NoSpeechError("No speech detected")
 
     audio_data = np.concatenate(frames)
-
-    if not speech_ended:
-        # Max duration reached without silence detection -- still return what we have
-        pass
-
     buf = BytesIO()
     sf.write(buf, audio_data, settings.audio_sample_rate, format="WAV", subtype="PCM_16")  # pyright: ignore[reportUnknownMemberType]
     buf.seek(0)

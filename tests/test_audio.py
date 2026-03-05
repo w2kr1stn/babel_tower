@@ -45,7 +45,11 @@ class FakeStream:
 
 
 class FakeVADIterator:
-    """Mock VADIterator that returns start/end events at configurable positions."""
+    """Mock VADIterator that returns start/end events at configurable positions.
+
+    Supports multi-segment via events list: [(start1, end1), (start2, end2), ...].
+    Default: single segment at calls 2-5 (backward compatible).
+    """
 
     def __init__(
         self,
@@ -55,19 +59,24 @@ class FakeVADIterator:
         min_silence_duration_ms: int = 1500,
     ) -> None:
         self._call_count = 0
-        self._start_at: int = 2
-        self._end_at: int = 5
+        self._events: list[tuple[int, int]] = [(2, 5)]
 
     def configure(self, start_at: int, end_at: int) -> None:
-        self._start_at = start_at
-        self._end_at = end_at
+        self._events = [(start_at, end_at)]
+
+    def configure_multi(self, events: list[tuple[int, int]]) -> None:
+        self._events = events
+
+    def reset_states(self) -> None:
+        pass
 
     def __call__(self, _x: Any, **_kwargs: Any) -> dict[str, int] | None:
         self._call_count += 1
-        if self._call_count == self._start_at:
-            return {"start": 0}
-        if self._call_count == self._end_at:
-            return {"end": self._call_count * 512}
+        for start, end in self._events:
+            if self._call_count == start:
+                return {"start": 0}
+            if self._call_count == end:
+                return {"end": self._call_count * 512}
         return None
 
 
@@ -81,12 +90,13 @@ class FakeVADIteratorNoSpeech:
         return None
 
 
-def _make_settings() -> Settings:
+def _make_settings(inter_segment_timeout: float = 0.0) -> Settings:
     return Settings(
         audio_sample_rate=16000,
         audio_channels=1,
         vad_threshold=0.5,
-        silence_duration=20.0,
+        silence_duration=2.0,
+        inter_segment_timeout=inter_segment_timeout,
     )
 
 
@@ -203,6 +213,82 @@ class TestRecordSpeechBlocking:
 
         with pytest.raises(NoSpeechError):
             _record_speech_blocking(_make_settings(), stop_event=stop)
+
+
+class TestMultiSegmentRecording:
+    @patch("babel_tower.audio.load_silero_vad")
+    @patch("babel_tower.audio.sd.InputStream")
+    def test_two_segments_concatenated(
+        self,
+        mock_input_stream: MagicMock,
+        mock_load_vad: MagicMock,
+    ) -> None:
+        # Segment 1: start@2, end@4. Gap@5-6. Segment 2: start@7, end@9.
+        # inter_segment_timeout covers chunks 5-106 (enough for gap at 5-6).
+        vad = FakeVADIterator(None)
+        vad.configure_multi([(2, 4), (7, 9)])
+        chunks = [_make_chunk(0.0)] * 20
+
+        mock_input_stream.return_value = FakeStream(chunks)
+        mock_load_vad.return_value = MagicMock()
+
+        with patch("babel_tower.audio.VADIterator", return_value=vad):
+            settings = _make_settings(inter_segment_timeout=3.2)
+            result = _record_speech_blocking(settings)
+
+        result.seek(0)
+        data, _ = sf.read(result)
+        # Segment 1 frames: calls 2,3,4 = 3 chunks. Segment 2 frames: calls 7,8,9 = 3 chunks.
+        assert len(data) == 6 * 512
+
+    @patch("babel_tower.audio.load_silero_vad")
+    @patch("babel_tower.audio.sd.InputStream")
+    def test_inter_segment_timeout_expires(
+        self,
+        mock_input_stream: MagicMock,
+        mock_load_vad: MagicMock,
+    ) -> None:
+        # Single segment, then timeout expires (no second segment).
+        vad = FakeVADIterator(None)
+        vad.configure_multi([(2, 4)])
+        # Use very short timeout: 1 chunk = 512/16000 = 0.032s
+        chunks = [_make_chunk(0.0)] * 20
+
+        mock_input_stream.return_value = FakeStream(chunks)
+        mock_load_vad.return_value = MagicMock()
+
+        with patch("babel_tower.audio.VADIterator", return_value=vad):
+            # 0.032s timeout = 1 chunk → expires at chunk_index 4+1=5
+            settings = _make_settings(inter_segment_timeout=0.032)
+            result = _record_speech_blocking(settings)
+
+        result.seek(0)
+        data, _ = sf.read(result)
+        # Only segment 1: calls 2,3,4 = 3 chunks
+        assert len(data) == 3 * 512
+
+    @patch("babel_tower.audio.load_silero_vad")
+    @patch("babel_tower.audio.sd.InputStream")
+    def test_legacy_single_segment_with_zero_timeout(
+        self,
+        mock_input_stream: MagicMock,
+        mock_load_vad: MagicMock,
+    ) -> None:
+        vad = FakeVADIterator(None)
+        vad.configure_multi([(2, 5), (8, 10)])
+        chunks = [_make_chunk(0.0)] * 20
+
+        mock_input_stream.return_value = FakeStream(chunks)
+        mock_load_vad.return_value = MagicMock()
+
+        with patch("babel_tower.audio.VADIterator", return_value=vad):
+            settings = _make_settings(inter_segment_timeout=0.0)
+            result = _record_speech_blocking(settings)
+
+        result.seek(0)
+        data, _ = sf.read(result)
+        # Only first segment: calls 2,3,4,5 = 4 chunks (breaks at first end)
+        assert len(data) == 4 * 512
 
 
 class TestRecordSpeechAsync:
