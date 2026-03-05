@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     stt_model: str = "Systran/faster-whisper-large-v3"
     stt_language: str = "de"
     stt_timeout: float = 600.0
+    stt_hotwords: str = ""
+    stt_prompt: str = ""
+    stt_corrections: str = ""
 
     # LLM Postprocessing (M5)
     llm_url: str = "http://ai-station:4000"
@@ -28,7 +31,8 @@ class Settings(BaseSettings):
     audio_sample_rate: int = 16000
     audio_channels: int = 1
     vad_threshold: float = 0.5
-    silence_duration: float = 20.0
+    silence_duration: float = 2.0
+    inter_segment_timeout: float = 30.0
     max_record_seconds: int = 600
 
     # TTS (M5)

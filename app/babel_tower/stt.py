@@ -1,3 +1,4 @@
+import re
 from io import BytesIO
 
 import httpx
@@ -9,6 +10,26 @@ class STTError(Exception):
     pass
 
 
+def _parse_corrections(raw: str) -> list[tuple[re.Pattern[str], str]]:
+    pairs: list[tuple[re.Pattern[str], str]] = []
+    for entry in raw.split(","):
+        entry = entry.strip()
+        if ":" not in entry:
+            continue
+        wrong, right = entry.split(":", 1)
+        if wrong.strip() and right.strip():
+            pairs.append((re.compile(re.escape(wrong.strip()), re.IGNORECASE), right.strip()))
+    return pairs
+
+
+def apply_corrections(text: str, settings: Settings) -> str:
+    if not settings.stt_corrections:
+        return text
+    for pattern, replacement in _parse_corrections(settings.stt_corrections):
+        text = pattern.sub(replacement, text)
+    return text
+
+
 async def transcribe(audio: bytes | BytesIO, settings: Settings | None = None) -> str:
     settings = settings or Settings()
     url = f"{settings.stt_url}/v1/audio/transcriptions"
@@ -17,7 +38,11 @@ async def transcribe(audio: bytes | BytesIO, settings: Settings | None = None) -
         audio = audio.getvalue()
 
     files = {"file": ("audio.wav", audio, "audio/wav")}
-    data = {"model": settings.stt_model, "language": settings.stt_language}
+    data: dict[str, str] = {"model": settings.stt_model, "language": settings.stt_language}
+    if settings.stt_hotwords:
+        data["hotwords"] = settings.stt_hotwords
+    if settings.stt_prompt:
+        data["prompt"] = settings.stt_prompt
 
     async with httpx.AsyncClient(timeout=settings.stt_timeout) as client:
         try:
@@ -31,4 +56,5 @@ async def transcribe(audio: bytes | BytesIO, settings: Settings | None = None) -
         raise STTError(f"STT returned {response.status_code}: {response.text}")
 
     result = response.json()
-    return result.get("text", "").strip()
+    text = result.get("text", "").strip()
+    return apply_corrections(text, settings)

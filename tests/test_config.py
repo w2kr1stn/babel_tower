@@ -11,6 +11,9 @@ class TestSettingsDefaults:
         assert settings.stt_model == "Systran/faster-whisper-large-v3"
         assert settings.stt_language == "de"
         assert settings.stt_timeout == 600.0
+        assert settings.stt_hotwords == ""
+        assert settings.stt_prompt == ""
+        assert settings.stt_corrections == ""
 
     def test_llm_defaults(self, clean_env: pytest.MonkeyPatch) -> None:
         settings = Settings()
@@ -23,7 +26,8 @@ class TestSettingsDefaults:
         assert settings.audio_sample_rate == 16000
         assert settings.audio_channels == 1
         assert settings.vad_threshold == 0.5
-        assert settings.silence_duration == 20.0
+        assert settings.silence_duration == 2.0
+        assert settings.inter_segment_timeout == 30.0
         assert settings.max_record_seconds == 600
 
     def test_tts_defaults(self, clean_env: pytest.MonkeyPatch) -> None:
