@@ -133,6 +133,14 @@ Erkenne Entitäten im Software-Kontext eigenständig und setze sie in Backticks 
 - **Umgebungsvariablen** (UPPERCASE mit Unterstrichen): `BABEL_STT_URL`, `NODE_ENV`, `PATH`
 - **Paket-/Modulnamen** im technischen Kontext: `httpx`, `pydantic-settings`, `silero-vad`
 
+### UPPER CASE Markdown-Dateinamen
+
+Bestimmte Markdown-Dateien werden konventionell vollständig großgeschrieben. Schreibe diese Dateinamen IMMER in UPPER CASE, auch wenn der Sprecher sie in Title Case oder Lower Case ausspricht:
+
+`CLAUDE.md`, `MEMORY.md`, `USER.md`, `README.md`, `CONTRIBUTING.md`, `LICENSE.md`, `TODO.md`, `CHANGELOG.md`, `PLAN.md`, `VISION.md`, `ABOUT.md`, `IMPLEMENTATION.md`, `STRATEGY.md`
+
+Diese Regel gilt auch innerhalb von File- und File-Path-Keywords: "File claude punkt md" → `CLAUDE.md`
+
 ### Was du NICHT formatierst
 
 - PR/Issue-Nummern: #19, #20, #123
