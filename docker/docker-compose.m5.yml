@@ -32,10 +32,9 @@ services:
       dockerfile: docker/Dockerfile.app
     container_name: babel-tower-service
     command: ["python", "-m", "babel_tower.cli", "serve"]
-    ports:
-      - "3001:3001"
+    network_mode: host
     environment:
-      - BABEL_STT_URL=http://stt:8000
+      - BABEL_STT_URL=http://localhost:29000
       - BABEL_LLM_URL=${BABEL_LLM_URL:-http://localhost:4000}
       - BABEL_LLM_MODEL=${BABEL_LLM_MODEL:-babel}
       - BABEL_LLM_API_KEY=${BABEL_LLM_API_KEY}
