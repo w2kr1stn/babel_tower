@@ -2,15 +2,8 @@
 # Usage: docker compose -f docker/docker-compose.m5.yml up -d
 services:
   stt:
-    image: ghcr.io/speaches-ai/speaches:latest-cuda
+    image: ghcr.io/speaches-ai/speaches:latest
     container_name: babel-tower-stt
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
     ports:
       - "29000:8000"
     volumes:
