@@ -123,3 +123,11 @@ exclude_dirs = [".venv", "venv", "tests"]
 skips = []
 # Fail on Medium and High severity (ISO 27001 compliance)
 # Run with: uv run bandit -c pyproject.toml -r .
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+torchaudio = { index = "pytorch-cpu" }

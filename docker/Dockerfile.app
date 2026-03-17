@@ -20,8 +20,6 @@ COPY pyproject.toml uv.lock README.md devops.py ./
 COPY app/ app/
 COPY prompts/ prompts/
 RUN uv sync --frozen && chmod -R 777 /tmp/uv-cache && chmod -R a+w /app/.venv
-# Replace CUDA torch with CPU-only (~700MB savings, CUDA not needed in container)
-RUN .venv/bin/pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu --no-deps --quiet
 
 ENTRYPOINT ["uv", "run"]
 CMD ["python", "-m", "babel_tower.cli", "daemon"]
