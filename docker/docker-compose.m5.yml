@@ -2,7 +2,7 @@
 # Usage: docker compose -f docker/docker-compose.m5.yml up -d
 services:
   stt:
-    image: ghcr.io/speaches-ai/speaches:latest
+    image: ghcr.io/speaches-ai/speaches:latest-cuda
     container_name: babel-tower-stt
     ports:
       - "29000:8000"
@@ -25,10 +25,13 @@ services:
       dockerfile: docker/Dockerfile.app
     container_name: babel-tower-service
     command: ["python", "-m", "babel_tower.cli", "serve"]
-    network_mode: host
+    ports:
+      - "3001:3001"
+    extra_hosts:
+      - "host-gateway:host-gateway"
     environment:
-      - BABEL_STT_URL=http://localhost:29000
-      - BABEL_LLM_URL=${BABEL_LLM_URL:-http://localhost:4000}
+      - BABEL_STT_URL=http://stt:8000
+      - BABEL_LLM_URL=${BABEL_LLM_URL:-http://host-gateway:4000}
       - BABEL_LLM_MODEL=${BABEL_LLM_MODEL:-babel}
       - BABEL_LLM_API_KEY=${BABEL_LLM_API_KEY}
       - BABEL_DEFAULT_MODE=clean
