@@ -148,6 +148,19 @@ def mcp(
 
 
 @app.command()
+def serve(
+    host: str = typer.Option("0.0.0.0", help="Bind host"),
+    port: int = typer.Option(3001, help="Port"),
+) -> None:
+    """HTTP service: audio file → clean transcript (for nanobot/Rupert)."""
+    import uvicorn
+
+    from babel_tower.serve import create_app
+
+    uvicorn.run(create_app(), host=host, port=port)
+
+
+@app.command()
 def debug() -> None:
     """Show resolved settings and test connectivity."""
     from babel_tower.config import Settings

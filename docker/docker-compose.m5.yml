@@ -1,0 +1,49 @@
+# M5 AI Station deployment: speaches STT + babel-service HTTP endpoint
+# Usage: docker compose -f docker/docker-compose.m5.yml up -d
+services:
+  stt:
+    image: ghcr.io/speaches-ai/speaches:latest-cuda
+    container_name: babel-tower-stt
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    ports:
+      - "29000:8000"
+    volumes:
+      - stt-models:/home/ubuntu/.cache/huggingface/hub
+    environment:
+      - WHISPER__MODEL=${BABEL_STT_MODEL:-Systran/faster-whisper-large-v3}
+      - WHISPER__COMPUTE_TYPE=int8
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  babel-service:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.app
+    container_name: babel-tower-service
+    command: ["python", "-m", "babel_tower.cli", "serve"]
+    ports:
+      - "3001:3001"
+    environment:
+      - BABEL_STT_URL=http://stt:8000
+      - BABEL_LLM_URL=${BABEL_LLM_URL:-http://localhost:4000}
+      - BABEL_LLM_MODEL=${BABEL_LLM_MODEL:-babel}
+      - BABEL_LLM_API_KEY=${BABEL_LLM_API_KEY}
+      - BABEL_DEFAULT_MODE=clean
+    depends_on:
+      stt:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  stt-models:

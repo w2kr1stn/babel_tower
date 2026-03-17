@@ -31,6 +31,9 @@ dependencies = [
     "soundfile>=0.13.0",
     "numpy>=2.0.0",
     "typer>=0.15.0",
+    "uvicorn>=0.34.0",
+    "starlette>=0.45.0",
+    "loguru>=0.7.0",
 ]
 
 [dependency-groups]
