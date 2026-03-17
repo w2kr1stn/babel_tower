@@ -9,11 +9,11 @@ services:
     command: ["python", "-m", "babel_tower.cli", "daemon"]
     environment:
       - PULSE_SERVER=unix:/tmp/pulse.socket
-      - BABEL_STT_URL=http://ai-station:29000
+      - BABEL_STT_URL=http://100.79.61.30:29000
       - BABEL_STT_HOTWORDS=${BABEL_STT_HOTWORDS:-}
       - BABEL_STT_PROMPT=${BABEL_STT_PROMPT:-}
       - BABEL_STT_CORRECTIONS=${BABEL_STT_CORRECTIONS:-}
-      - BABEL_LLM_URL=http://ai-station:4000
+      - BABEL_LLM_URL=http://100.79.61.30:4000
       - BABEL_DEFAULT_MODE=structure
       - WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-wayland-0}
     volumes:
