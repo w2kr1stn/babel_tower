@@ -1,10 +1,24 @@
 import asyncio
+import subprocess
 import threading
 from pathlib import Path
 
 import typer
 
 app = typer.Typer(name="babel", help="Voice input pipeline for Claude Code")
+
+_COMPOSE_FILE = "docker/docker-compose.laptop.yml"
+
+
+def _compose_up(service: str) -> None:
+    compose = Path(_COMPOSE_FILE)
+    if not compose.exists():
+        typer.echo(f"{_COMPOSE_FILE} not found — run from project root", err=True)
+        raise typer.Exit(1)
+    subprocess.run(
+        ["docker", "compose", "-f", _COMPOSE_FILE, "up", "-d", "--build", service],
+        check=True,
+    )
 
 
 def _wait_for_enter(stop_event: threading.Event) -> None:
@@ -116,35 +130,15 @@ def process(
 
 
 @app.command()
-def daemon(
-    mode: str | None = typer.Option(
-        None, help="Default processing mode for this session"
-    ),
-) -> None:
-    """Start continuous voice listening daemon."""
-    from babel_tower.config import Settings
-    from babel_tower.daemon import VoiceDaemon
-
-    settings = Settings()
-    if mode:
-        settings.default_mode = mode
-    d = VoiceDaemon(settings=settings)
-    asyncio.run(d.run())
+def daemon() -> None:
+    """Start the voice daemon container."""
+    _compose_up("daemon")
 
 
 @app.command()
-def mcp(
-    transport: str = typer.Option("stdio", help="Transport: stdio, sse, streamable-http"),
-    host: str = typer.Option("0.0.0.0", help="Bind host for HTTP transports"),
-    port: int = typer.Option(3000, help="Port for HTTP transports"),
-) -> None:
-    """Start MCP server (STDIO by default, or SSE/HTTP for persistent mode)."""
-    from babel_tower.mcp_server import mcp as mcp_server
-
-    if transport == "stdio":
-        mcp_server.run(transport="stdio")
-    else:
-        mcp_server.run(transport=transport, host=host, port=port)  # pyright: ignore[reportArgumentType]
+def mcp() -> None:
+    """Start the MCP server container (SSE on port 3030)."""
+    _compose_up("mcp")
 
 
 @app.command()
