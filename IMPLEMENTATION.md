@@ -459,8 +459,29 @@ async def run(self):
 | `babel-tower process <audio.wav> [--mode MODE]` | WAV-Datei → Pipeline → Ergebnis auf stdout |
 | `babel-tower daemon [--mode MODE]` | Endlosschleife (VAD-gesteuert) |
 | `babel-tower mcp` | FastMCP-Server starten (STDIO-Transport) |
+| `babel-tower telegram-bot` | Telegram-Bot starten (Long Polling) |
 
-**Lazy Imports:** Alle schweren Module (`pipeline`, `daemon`, `mcp_server`) werden erst innerhalb der jeweiligen Subcommand-Funktion importiert. Dies vermeidet PortAudio-Import-Fehler beim bloessen Laden des CLI-Moduls.
+**Lazy Imports:** Alle schweren Module (`pipeline`, `daemon`, `mcp_server`, `telegram_bot`) werden erst innerhalb der jeweiligen Subcommand-Funktion importiert. Dies vermeidet PortAudio-Import-Fehler beim bloessen Laden des CLI-Moduls.
+
+### telegram_bot.py — Telegram-Bot
+
+**Zentrale Aufgabe:** Externer Eingabekanal fuer mobile Nutzung. Empfaengt Sprachnachrichten ueber Telegram, laesst sie durch die bestehende Pipeline (`transcribe` + `process_transcript`) laufen und antwortet mit dem bereinigten Transkript als tap-to-copy HTML-Code-Block. Primaerer Use Case: Diktieren von Prompts fuer Claude Code vom Smartphone.
+
+**Framework:** `python-telegram-bot[socks]>=22.0`, Long Polling (keine oeffentliche IP noetig).
+
+**ACL:** Whitelist via `BABEL_TELEGRAM_ALLOWED_USERS` (komma-getrennte Telegram-User-IDs). Nicht autorisierte User werden stumm ignoriert (geloggt, keine Reply).
+
+**Handler:**
+- **Voice/Audio** (`filters.VOICE | filters.AUDIO`): Download via `bot.get_file()` + `download_to_memory(BytesIO)`, dann Pipeline-Aufruf. Reply als `<pre>{html.escape(text)}</pre>` mit `parse_mode="HTML"` (tap-to-copy).
+- **Text** (`filters.TEXT & ~filters.COMMAND`): Hinweis-Nachricht "🗼 Schick mir eine Sprachnachricht."
+
+**Mode:** Nutzt den konfigurierten `BABEL_DEFAULT_MODE` (standardmaessig `clean`). Keine Inline-Mode-Commands — bewusste YAGNI-Entscheidung fuer den dominanten "schnelles Claude-Code-Prompt"-Use-Case.
+
+**Fehlerbehandlung:** Fehler/Warnungen (`❌ STT: ...`, `⚠️ Keine Sprache erkannt.`) werden als Plain-Text-Replies gesendet (kein Code-Block), damit Telegram den Fehler rendert und kein unparsbarer HTML-Request verloren geht.
+
+**Nachrichten-Splitting:** Texte > 4000 Zeichen werden in Chunks geteilt; jeder Chunk erhaelt seinen eigenen `<pre>`-Block.
+
+**Format-Toleranz:** Telegram-Voice-Nachrichten kommen als OGG/Opus. Speaches (faster-whisper) akzeptiert das Format direkt via eingebautes FFmpeg — keine Vorkonvertierung noetig.
 
 ---
 
@@ -574,6 +595,8 @@ docker run -i --rm \
 | `BABEL_DURCHREICHEN_MAX_WORDS` | `int` | `5` | Schwelle fuer Auto-Durchreichen |
 | `BABEL_REVIEW_ENABLED` | `bool` | `false` | rofi-Review-Popup aktivieren |
 | `BABEL_PROMPTS_DIR` | `str` | `prompts` | Pfad zu System-Prompt-Dateien |
+| `BABEL_TELEGRAM_BOT_TOKEN` | `str` | `""` | Telegram-Bot-Token (erforderlich fuer telegram-bot-Modus) |
+| `BABEL_TELEGRAM_ALLOWED_USERS` | `str` | `""` | Komma-getrennte Telegram-User-IDs mit Zugriff (leer = alle) |
 
 ---
 

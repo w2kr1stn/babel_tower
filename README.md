@@ -69,6 +69,21 @@ docker compose -f docker/docker-compose.yml up daemon
 
 Continuous VAD-based listening. Speech → STT → LLM → clipboard + notification.
 
+### 3c. Telegram Bot Mode (Mobile Input)
+
+```bash
+docker compose -f docker/docker-compose.m5.yml up -d telegram-bot
+```
+
+Deploys a Telegram bot on M5 (24/7 availability, independent of laptop).
+Send voice messages to the bot; it replies with the cleaned transcript
+wrapped in a tap-to-copy HTML code block — designed for dictating prompts
+to Claude Code from mobile.
+
+Requires `BABEL_TELEGRAM_BOT_TOKEN` (from @BotFather) and
+`BABEL_TELEGRAM_ALLOWED_USERS` (comma-separated Telegram user IDs) in
+`docker/.env`. Unauthorized users are silently ignored.
+
 ## Configuration
 
 All settings via `BABEL_` environment variables:
@@ -86,6 +101,8 @@ All settings via `BABEL_` environment variables:
 | `BABEL_REVIEW_ENABLED` | `false` | Show rofi edit popup before clipboard |
 | `BABEL_VAD_THRESHOLD` | `0.5` | silero-vad confidence threshold |
 | `BABEL_SILENCE_DURATION` | `1.5` | Seconds of silence to end recording |
+| `BABEL_TELEGRAM_BOT_TOKEN` | `""` | Telegram bot token (required for telegram-bot mode) |
+| `BABEL_TELEGRAM_ALLOWED_USERS` | `""` | Comma-separated Telegram user IDs allowed to use the bot |
 
 ## Processing Modes
 
