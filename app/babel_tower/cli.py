@@ -75,6 +75,42 @@ def listen(
     _listen(mode)
 
 
+@app.command(name="listen-toggle")
+def listen_toggle(
+    mode: str | None = typer.Option(
+        None, help="Processing mode: structure, clean, durchreichen"
+    ),
+) -> None:
+    """Record until SIGUSR1 or SIGTERM is received; for DE-shortcut toggles."""
+    import signal
+
+    from babel_tower.audio import NoSpeechError
+    from babel_tower.pipeline import run_pipeline
+    from babel_tower.processing import ProcessingError
+    from babel_tower.stt import STTError
+
+    stop_event = threading.Event()
+
+    def _stop(_signum: int, _frame: object) -> None:
+        stop_event.set()
+
+    signal.signal(signal.SIGUSR1, _stop)
+    signal.signal(signal.SIGTERM, _stop)
+
+    try:
+        result = asyncio.run(run_pipeline(mode=mode, stop_event=stop_event, strict=True))
+    except NoSpeechError:
+        raise typer.Exit(0) from None
+    except STTError as e:
+        typer.echo(f"Fehler (STT): {e}", err=True)
+        raise typer.Exit(1) from None
+    except ProcessingError as e:
+        typer.echo(f"Fehler (LLM): {e}", err=True)
+        raise typer.Exit(1) from None
+    if result:
+        typer.echo(result)
+
+
 @app.command()
 def revise() -> None:
     """Record change instructions → revise previous result from clipboard."""
