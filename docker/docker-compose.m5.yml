@@ -40,5 +40,26 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  telegram-bot:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.app
+    container_name: babel-tower-telegram-bot
+    command: ["python", "-m", "babel_tower.cli", "telegram-bot"]
+    extra_hosts:
+      - "host-gateway:host-gateway"
+    environment:
+      - BABEL_STT_URL=http://stt:8000
+      - BABEL_LLM_URL=${BABEL_LLM_URL:-http://host-gateway:4000}
+      - BABEL_LLM_MODEL=${BABEL_LLM_MODEL:-babel}
+      - BABEL_LLM_API_KEY=${BABEL_LLM_API_KEY}
+      - BABEL_DEFAULT_MODE=clean
+      - BABEL_TELEGRAM_BOT_TOKEN=${BABEL_TELEGRAM_BOT_TOKEN}
+      - BABEL_TELEGRAM_ALLOWED_USERS=${BABEL_TELEGRAM_ALLOWED_USERS}
+    depends_on:
+      stt:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   stt-models:
