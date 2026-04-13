@@ -29,6 +29,8 @@ def clean_env(monkeypatch: pytest.MonkeyPatch) -> Generator[pytest.MonkeyPatch]:
         "BABEL_TTS_TIMEOUT",
         "BABEL_TTS_ENABLED",
         "BABEL_STT_TIMEOUT",
+        "BABEL_TELEGRAM_BOT_TOKEN",
+        "BABEL_TELEGRAM_ALLOWED_USERS",
     ]
     for var in babel_vars:
         monkeypatch.delenv(var, raising=False)

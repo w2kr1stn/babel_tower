@@ -154,6 +154,14 @@ def serve(
     uvicorn.run(create_app(), host=host, port=port)
 
 
+@app.command(name="telegram-bot")
+def telegram_bot() -> None:
+    """Start Telegram bot (voice messages → cleaned transcript reply)."""
+    from babel_tower.telegram_bot import run
+
+    run()
+
+
 @app.command()
 def debug() -> None:
     """Show resolved settings and test connectivity."""

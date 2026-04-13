@@ -48,3 +48,7 @@ class Settings(BaseSettings):
 
     # Prompts
     prompts_dir: str = "prompts"
+
+    # Telegram bot
+    telegram_bot_token: str = ""
+    telegram_allowed_users: str = ""
