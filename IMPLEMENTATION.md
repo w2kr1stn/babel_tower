@@ -506,6 +506,7 @@ async def run(self):
 | Command | Beschreibung |
 |---------|-------------|
 | `babel listen [--mode MODE]` | Einmalaufnahme → Pipeline → Ergebnis auf stdout |
+| `babel listen-toggle [--mode MODE]` | Wie `listen`, aber stoppt auf `SIGUSR1`/`SIGTERM` statt Enter (fuer DE-Shortcut-Toggles) |
 | `babel clean` | Shortcut fuer `listen --mode clean` |
 | `babel structure` | Shortcut fuer `listen --mode structure` |
 | `babel revise` | Gesprochene Aenderungsanweisungen auf vorheriges Ergebnis (Clipboard/State) anwenden |
@@ -519,6 +520,8 @@ async def run(self):
 **Lazy Imports:** Alle schweren Module (`pipeline`, `daemon`, `mcp_server`, `serve`, `telegram_bot`) werden erst innerhalb der jeweiligen Subcommand-Funktion importiert. Dies vermeidet PortAudio-Import-Fehler beim bloessen Laden des CLI-Moduls.
 
 **Hinweis:** Die neueren Subcommands `daemon` und `mcp` delegieren in den aktuellen Laptop-Setups an `docker compose up -d --build <service>` statt den Prozess direkt zu starten. Das erhaelt Audio- und Wayland-Mounts, die direkt auf der Host-Shell nicht verfuegbar sind.
+
+**Toggle-Muster fuer Desktop-Shortcuts:** `listen-toggle` registriert zu Beginn Signal-Handler fuer `SIGUSR1` und `SIGTERM`, die das existierende `stop_event` der Pipeline setzen. Ein kleines Wrapper-Script (`babel-toggle`, siehe README §3d) realisiert das Same-Key-Toggle: beim ersten Druck wird babel gestartet und die PID in einem Lock-File abgelegt; beim zweiten Druck findet der Wrapper die PID und sendet `SIGUSR1` — damit endet die Aufnahme sauber, und die nachfolgenden Phasen (STT, LLM, Clipboard, Notification) laufen ungestoert zu Ende. Weitere Drücke waehrend der Verarbeitung laufen ins Leere (Handler ist idempotent). Sobald die Pipeline fertig ist, wird das Lock-File geloescht und der Toggle ist wieder im `idle`-Zustand.
 
 ### serve.py — HTTP-Service fuer externe Konsumenten
 

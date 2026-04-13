@@ -84,7 +84,53 @@ Requires `BABEL_TELEGRAM_BOT_TOKEN` (from @BotFather) and
 `BABEL_TELEGRAM_ALLOWED_USERS` (comma-separated Telegram user IDs) in
 `docker/.env`. Unauthorized users are silently ignored.
 
-### 3d. HTTP Service Mode (for nanobot/Rupert)
+### 3d. Desktop Hotkey Toggle (same key = start/stop)
+
+On Wayland desktops, binding `babel clean` directly to a DE shortcut has two
+problems: there is no Terminal to press Enter to stop the recording, and VAD-
+based auto-stop ends recordings prematurely when you pause to think. The
+`listen-toggle` subcommand solves this — it records until it receives
+`SIGUSR1`, then runs the rest of the pipeline to completion.
+
+Wrap it with a tiny PID-file script to get a true same-key toggle:
+
+```bash
+cat > ~/.local/bin/babel-toggle <<'EOF'
+#!/usr/bin/env bash
+PIDFILE="/tmp/babel-toggle.pid"
+LOG="/tmp/babel-toggle.log"
+MODE="${1:-clean}"
+
+if [ -f "$PIDFILE" ]; then
+  PID=$(cat "$PIDFILE")
+  if kill -0 "$PID" 2>/dev/null; then
+    kill -USR1 "$PID"
+    exit 0
+  fi
+  rm -f "$PIDFILE"
+fi
+
+exec >> "$LOG" 2>&1
+exec 0< /dev/null
+export PATH="$HOME/.local/bin:$PATH"
+"$HOME/.local/bin/babel" listen-toggle --mode "$MODE" &
+echo $! > "$PIDFILE"
+wait
+rm -f "$PIDFILE"
+EOF
+chmod +x ~/.local/bin/babel-toggle
+```
+
+Bind `~/.local/bin/babel-toggle` to a DE shortcut (COSMIC: Settings → Input
+Devices → Keyboard → Custom Shortcuts). First press starts recording, second
+press ends it and triggers transcription + cleanup. Presses during processing
+are swallowed until the pipeline finishes. Result lands in the clipboard
+(`Ctrl+V` to paste). For the `structure` mode, use a second shortcut with the
+command `~/.local/bin/babel-toggle structure`.
+
+Requires `libnotify-bin` for desktop popups (`sudo apt install libnotify-bin`).
+
+### 3e. HTTP Service Mode (for nanobot/Rupert)
 
 ```bash
 docker compose -f docker/docker-compose.m5.yml up -d babel-service
