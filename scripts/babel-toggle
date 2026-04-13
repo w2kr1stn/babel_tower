@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Same-key start/stop toggle for `babel listen-toggle`.
+# Designed to be bound to a desktop-environment custom shortcut on Wayland.
+#
+# Semantics:
+#   1st invocation  -> spawn babel listen-toggle, save PID in lockfile
+#   2nd invocation  -> send SIGUSR1 to the saved PID (clean stop; pipeline
+#                      continues through STT + LLM + clipboard + notify)
+#   invocations during processing -> SIGUSR1 is sent but has no effect
+#                      (stop_event already set); when the pipeline finishes
+#                      the lockfile is cleared and toggle is idle again
+#
+# First positional arg selects the processing mode (default: clean).
+# Install path: ~/.local/bin/babel-toggle (symlink or copy from this file).
+
+set -u
+
+PIDFILE="/tmp/babel-toggle.pid"
+LOG="/tmp/babel-toggle.log"
+MODE="${1:-clean}"
+BABEL_BIN="${BABEL_BIN:-$HOME/.local/bin/babel}"
+
+if [ -f "$PIDFILE" ]; then
+  PID=$(cat "$PIDFILE")
+  if kill -0 "$PID" 2>/dev/null; then
+    kill -USR1 "$PID"
+    exit 0
+  fi
+  # stale pidfile from a crashed run
+  rm -f "$PIDFILE"
+fi
+
+exec >> "$LOG" 2>&1
+exec 0< /dev/null
+echo "--- $(date -Iseconds) start mode=$MODE ---"
+export PATH="$HOME/.local/bin:$PATH"
+
+"$BABEL_BIN" listen-toggle --mode "$MODE" &
+BABEL_PID=$!
+echo "$BABEL_PID" > "$PIDFILE"
+wait "$BABEL_PID"
+rm -f "$PIDFILE"
+echo "--- $(date -Iseconds) end ---"

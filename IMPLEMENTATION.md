@@ -521,7 +521,7 @@ async def run(self):
 
 **Hinweis:** Die neueren Subcommands `daemon` und `mcp` delegieren in den aktuellen Laptop-Setups an `docker compose up -d --build <service>` statt den Prozess direkt zu starten. Das erhaelt Audio- und Wayland-Mounts, die direkt auf der Host-Shell nicht verfuegbar sind.
 
-**Toggle-Muster fuer Desktop-Shortcuts:** `listen-toggle` registriert zu Beginn Signal-Handler fuer `SIGUSR1` und `SIGTERM`, die das existierende `stop_event` der Pipeline setzen. Ein kleines Wrapper-Script (`babel-toggle`, siehe README §3d) realisiert das Same-Key-Toggle: beim ersten Druck wird babel gestartet und die PID in einem Lock-File abgelegt; beim zweiten Druck findet der Wrapper die PID und sendet `SIGUSR1` — damit endet die Aufnahme sauber, und die nachfolgenden Phasen (STT, LLM, Clipboard, Notification) laufen ungestoert zu Ende. Weitere Drücke waehrend der Verarbeitung laufen ins Leere (Handler ist idempotent). Sobald die Pipeline fertig ist, wird das Lock-File geloescht und der Toggle ist wieder im `idle`-Zustand.
+**Toggle-Muster fuer Desktop-Shortcuts:** `listen-toggle` registriert zu Beginn Signal-Handler fuer `SIGUSR1` und `SIGTERM`, die das existierende `stop_event` der Pipeline setzen. Das mitgelieferte Wrapper-Script `scripts/babel-toggle` realisiert das Same-Key-Toggle: beim ersten Druck wird babel gestartet und die PID in einem Lock-File (`/tmp/babel-toggle.pid`) abgelegt; beim zweiten Druck findet der Wrapper die PID und sendet `SIGUSR1` — damit endet die Aufnahme sauber, und die nachfolgenden Phasen (STT, LLM, Clipboard, Notification) laufen ungestoert zu Ende. Weitere Drücke waehrend der Verarbeitung laufen ins Leere (Handler ist idempotent). Sobald die Pipeline fertig ist, wird das Lock-File geloescht und der Toggle ist wieder im `idle`-Zustand. Das Script erwartet `babel` unter `$HOME/.local/bin/babel` oder `$BABEL_BIN`; fuer den DE-Shortcut wird typischerweise ein Symlink nach `~/.local/bin/babel-toggle` gelegt.
 
 ### serve.py — HTTP-Service fuer externe Konsumenten
 
@@ -851,6 +851,8 @@ babel_tower/
 │   ├── docker-compose.yml               # STT + Daemon (generisches GPU-Setup)
 │   ├── docker-compose.laptop.yml        # Daemon + MCP (STT remote auf M5)
 │   └── docker-compose.m5.yml            # STT + HTTP-Service + Telegram-Bot (M5)
+├── scripts/
+│   └── babel-toggle                     # Same-key start/stop wrapper fuer DE-Shortcut
 ├── app/babel_tower/                      # Python-Package (via hatch → babel_tower)
 │   ├── __init__.py
 │   ├── config.py                        # Pydantic Settings

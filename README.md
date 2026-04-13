@@ -92,33 +92,13 @@ based auto-stop ends recordings prematurely when you pause to think. The
 `listen-toggle` subcommand solves this — it records until it receives
 `SIGUSR1`, then runs the rest of the pipeline to completion.
 
-Wrap it with a tiny PID-file script to get a true same-key toggle:
+A tiny PID-file wrapper turns this into a true same-key toggle. The wrapper
+lives in the repo at `scripts/babel-toggle` — install it with:
 
 ```bash
-cat > ~/.local/bin/babel-toggle <<'EOF'
-#!/usr/bin/env bash
-PIDFILE="/tmp/babel-toggle.pid"
-LOG="/tmp/babel-toggle.log"
-MODE="${1:-clean}"
-
-if [ -f "$PIDFILE" ]; then
-  PID=$(cat "$PIDFILE")
-  if kill -0 "$PID" 2>/dev/null; then
-    kill -USR1 "$PID"
-    exit 0
-  fi
-  rm -f "$PIDFILE"
-fi
-
-exec >> "$LOG" 2>&1
-exec 0< /dev/null
-export PATH="$HOME/.local/bin:$PATH"
-"$HOME/.local/bin/babel" listen-toggle --mode "$MODE" &
-echo $! > "$PIDFILE"
-wait
-rm -f "$PIDFILE"
-EOF
-chmod +x ~/.local/bin/babel-toggle
+ln -s "$(pwd)/scripts/babel-toggle" ~/.local/bin/babel-toggle
+# or, if you prefer a copy instead of a symlink:
+#   install -m 755 scripts/babel-toggle ~/.local/bin/babel-toggle
 ```
 
 Bind `~/.local/bin/babel-toggle` to a DE shortcut (COSMIC: Settings → Input
