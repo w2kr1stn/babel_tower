@@ -17,7 +17,7 @@ Voice input pipeline for Claude Code: spoken German/English input → STT → LL
 │  ┌──────────────────────┐    ┌──────────────────────────┐     │
 │  │ babel-tower-app      │    │ babel-tower-stt          │     │
 │  │ (MCP or Daemon)      │───▶│ (faster-whisper + CUDA)  │     │
-│  │ PulseAudio + VAD     │    │ OpenAI API :9000         │     │
+│  │ PulseAudio + VAD     │    │ OpenAI API :29000        │     │
 │  └──────────┬───────────┘    └──────────────────────────┘     │
 │             │ Tailscale                                        │
 └─────────────┼──────────────────────────────────────────────────┘
@@ -53,13 +53,13 @@ docker build -f docker/Dockerfile.app -t babel-tower-app ..
 claude mcp add babel-tower -- docker run -i --rm \
   --network host \
   -e PULSE_SERVER=unix:/tmp/pulse.socket \
-  -e BABEL_STT_URL=http://localhost:9000 \
-  -e BABEL_LLM_URL=http://m5:4000 \
+  -e BABEL_STT_URL=http://localhost:29000 \
+  -e BABEL_LLM_URL=http://ai-station:4000 \
   -v ${XDG_RUNTIME_DIR}/pulse/native:/tmp/pulse.socket \
   babel-tower-app python -m babel_tower.mcp_server
 ```
 
-MCP tools: `listen` (record + transcribe + process), `set_mode` (change processing mode).
+MCP tools: `converse` (optional speak-message + record + transcribe + process), `set_mode` (change processing mode).
 
 ### 3b. Daemon Mode (Continuous Listening)
 
@@ -84,23 +84,43 @@ Requires `BABEL_TELEGRAM_BOT_TOKEN` (from @BotFather) and
 `BABEL_TELEGRAM_ALLOWED_USERS` (comma-separated Telegram user IDs) in
 `docker/.env`. Unauthorized users are silently ignored.
 
+### 3d. HTTP Service Mode (for nanobot/Rupert)
+
+```bash
+docker compose -f docker/docker-compose.m5.yml up -d babel-service
+```
+
+Exposes `POST /process` on port 3001 (multipart `file` + optional `mode`,
+returns `{text, transcript}`). Used by nanobot/Rupert as an STT+cleanup
+front end for incoming Telegram voice messages.
+
 ## Configuration
 
 All settings via `BABEL_` environment variables:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `BABEL_STT_URL` | `http://localhost:9000` | STT API endpoint |
-| `BABEL_STT_MODEL` | `large-v3` | Whisper model name |
+| `BABEL_STT_URL` | `http://localhost:29000` | STT API endpoint |
+| `BABEL_STT_MODEL` | `Systran/faster-whisper-large-v3` | Whisper model name |
 | `BABEL_STT_LANGUAGE` | `de` | Transcription language |
-| `BABEL_STT_TIMEOUT` | `30.0` | STT request timeout (seconds) |
-| `BABEL_LLM_URL` | `http://m5:4000` | LLM API endpoint (Tailscale) |
+| `BABEL_STT_TIMEOUT` | `600.0` | STT request timeout (seconds) |
+| `BABEL_STT_HOTWORDS` | `""` | Comma-separated hotwords for faster-whisper biasing |
+| `BABEL_STT_PROMPT` | `""` | Context prompt fed to Whisper |
+| `BABEL_STT_CORRECTIONS` | `""` | Post-STT regex find:replace pairs (`wrong:right,…`) |
+| `BABEL_LLM_URL` | `http://ai-station:4000` | LLM API endpoint (Tailscale) |
 | `BABEL_LLM_MODEL` | `babel` | LiteLLM model alias |
-| `BABEL_LLM_TIMEOUT` | `120.0` | LLM request timeout (seconds) |
-| `BABEL_DEFAULT_MODE` | `bereinigen` | Default processing mode |
+| `BABEL_LLM_API_KEY` | `""` | Bearer token for LiteLLM (optional) |
+| `BABEL_LLM_TIMEOUT` | `300.0` | LLM request timeout (seconds) |
+| `BABEL_DEFAULT_MODE` | `clean` | Default processing mode |
+| `BABEL_DURCHREICHEN_MAX_WORDS` | `5` | Word threshold for auto-`durchreichen` |
 | `BABEL_REVIEW_ENABLED` | `false` | Show rofi edit popup before clipboard |
 | `BABEL_VAD_THRESHOLD` | `0.5` | silero-vad confidence threshold |
-| `BABEL_SILENCE_DURATION` | `1.5` | Seconds of silence to end recording |
+| `BABEL_SILENCE_DURATION` | `2.0` | Seconds of silence to end recording |
+| `BABEL_INTER_SEGMENT_TIMEOUT` | `30.0` | Seconds between multi-segment speech bursts |
+| `BABEL_MAX_RECORD_SECONDS` | `600` | Hard cap on recording duration |
+| `BABEL_TTS_ENABLED` | `false` | Enable spoken replies in `converse` |
+| `BABEL_TTS_URL` | `http://m5:8000` | OpenedAI-Speech endpoint |
+| `BABEL_TTS_VOICE` | `thorsten_emotional` | Piper TTS voice |
 | `BABEL_TELEGRAM_BOT_TOKEN` | `""` | Telegram bot token (required for telegram-bot mode) |
 | `BABEL_TELEGRAM_ALLOWED_USERS` | `""` | Comma-separated Telegram user IDs allowed to use the bot |
 
@@ -108,11 +128,12 @@ All settings via `BABEL_` environment variables:
 
 | Mode | Intensity | Use Case |
 |------|-----------|----------|
-| **strukturieren** | High | Feature descriptions, bug reports — extracts goals, structures into Markdown |
-| **bereinigen** | Medium | Conversational input — removes fillers, fixes grammar, preserves tone |
+| **structure** | High | Feature descriptions, bug reports — extracts goals, structures into Markdown |
+| **clean** | Medium | Conversational input — removes fillers, fixes grammar, preserves tone |
 | **durchreichen** | Minimal | Short confirmations — passthrough with typo fixes only |
+| **revise** | Meta | Apply spoken change instructions to a previous result (used by `babel revise`) |
 
-Auto-selection: transcripts with 5 or fewer words use `durchreichen`, otherwise `default_mode`.
+Auto-selection: transcripts with `BABEL_DURCHREICHEN_MAX_WORDS` (default 5) or fewer words use `durchreichen`, otherwise `default_mode`.
 
 ## Graceful Degradation
 
@@ -134,5 +155,5 @@ uv run pyright app/               # Type check
 
 ```bash
 # Record 10 test sentences (see tests/stt_evaluation/sentences.json)
-python tests/stt_evaluation/evaluate.py --stt-url http://localhost:9000 --wav-dir ./wavs
+python tests/stt_evaluation/evaluate.py --stt-url http://localhost:29000 --wav-dir ./wavs
 ```
