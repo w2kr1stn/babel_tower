@@ -15,10 +15,16 @@ def _compose_up(service: str) -> None:
     if not compose.exists():
         typer.echo(f"{_COMPOSE_FILE} not found — run from project root", err=True)
         raise typer.Exit(1)
-    subprocess.run(
-        ["docker", "compose", "-f", _COMPOSE_FILE, "up", "-d", "--build", service],
-        check=True,
-    )
+    # Compose defaults to .env next to the compose file (docker/.env) — the
+    # project's .env lives at the repo root, so point there explicitly.
+    # (--project-directory would re-anchor every relative path in the compose
+    # file, breaking context: ..)
+    env_file = Path(".env")
+    cmd: list[str] = ["docker", "compose", "-f", _COMPOSE_FILE]
+    if env_file.exists():
+        cmd += ["--env-file", str(env_file)]
+    cmd += ["up", "-d", "--build", service]
+    subprocess.run(cmd, check=True)
 
 
 def _wait_for_enter(stop_event: threading.Event) -> None:
